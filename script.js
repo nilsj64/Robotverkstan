@@ -185,8 +185,6 @@ const elements = {
   brandButton: document.querySelector("#brand-button"),
   startButton: document.querySelector("#start-button"),
   learnHeaderButton: document.querySelector("#learn-header-button"),
-  learnStartButton: document.querySelector("#learn-start-button"),
-  learnGameButton: document.querySelector("#learn-game-button"),
   backStartButton: document.querySelector("#back-start-button"),
   backLevelsButton: document.querySelector("#back-levels-button"),
   levelGrid: document.querySelector("#level-grid"),
@@ -977,9 +975,7 @@ function bindEvents() {
   elements.backStartButton.addEventListener("click", () => showScreen("start"));
   elements.backLevelsButton.addEventListener("click", () => showScreen("level"));
 
-  [elements.learnHeaderButton, elements.learnStartButton, elements.learnGameButton].forEach(
-    (button) => button.addEventListener("click", openLearnDialog),
-  );
+  elements.learnHeaderButton.addEventListener("click", openLearnDialog);
   elements.closeLearnButton.addEventListener("click", closeLearnDialog);
   elements.learnOkButton.addEventListener("click", closeLearnDialog);
   elements.learnDialog.addEventListener("click", (event) => {

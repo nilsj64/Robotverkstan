@@ -117,7 +117,6 @@ body:has(dialog[open]) .skip-link {
 
 .brand-button,
 .icon-text-button,
-.icon-button,
 .back-button,
 .text-button,
 .small-button,
@@ -695,20 +694,6 @@ body:has(dialog[open]) .skip-link {
   border-radius: inherit;
   background: var(--blue);
   transition: width 240ms ease;
-}
-
-.icon-button {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  min-height: 44px;
-  place-items: center;
-  justify-self: end;
-  border: 2px solid var(--line);
-  border-radius: 50%;
-  background: #fff;
-  color: var(--blue);
-  font-weight: 900;
 }
 
 .mission-banner {
