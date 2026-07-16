@@ -153,13 +153,26 @@
               <div class="program-list-wrap">
                 <ol class="program-list" id="program-list" aria-label="Programmets instruktioner"></ol>
                 <div class="empty-program" id="empty-program">
-                  <span aria-hidden="true">＋</span>
-                  <p>Tryck på en instruktion nedan för att bygga ditt program.</p>
+                  <div class="empty-program-steps" aria-hidden="true">
+                    <span class="empty-program-row"><i>1</i> Lägg till instruktion</span>
+                    <span class="empty-program-row"><i>2</i> Nästa instruktion</span>
+                    <span class="empty-program-row"><i>3</i> Nästa instruktion</span>
+                  </div>
+                  <p>Programmet körs uppifrån och ned, en instruktion i taget.</p>
                 </div>
               </div>
 
               <div class="command-section">
                 <p class="control-label">Lägg till instruktion</p>
+                <div class="sensor-tip" id="sensor-tip" hidden>
+                  <p>
+                    Sensorinstruktionen tittar på rutan framför roboten. Om det finns ett hinder
+                    där svänger roboten höger.
+                  </p>
+                  <button class="sensor-tip-dismiss" id="sensor-tip-dismiss" type="button">
+                    Jag fattar
+                  </button>
+                </div>
                 <div class="command-palette" id="command-palette"></div>
               </div>
 

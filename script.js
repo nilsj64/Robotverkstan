@@ -145,6 +145,11 @@ const DEFAULT_PROGRESS = Object.freeze({
   unlockedLevel: 1,
   bestStars: {},
   hasSeenInfo: false,
+  sensorIntro: {
+    shown: false,
+    dismissed: false,
+    used: false,
+  },
 });
 
 const state = {
@@ -161,6 +166,12 @@ const state = {
   unlockedLevel: 1,
   bestStars: {},
   hasSeenInfo: false,
+  sensorIntro: {
+    shown: false,
+    dismissed: false,
+    used: false,
+  },
+  sensorIntroVisible: false,
   completionShown: false,
 };
 
@@ -194,6 +205,8 @@ const elements = {
   emptyProgram: document.querySelector("#empty-program"),
   commandCount: document.querySelector("#command-count"),
   commandPalette: document.querySelector("#command-palette"),
+  sensorTip: document.querySelector("#sensor-tip"),
+  sensorTipDismiss: document.querySelector("#sensor-tip-dismiss"),
   clearProgramButton: document.querySelector("#clear-program-button"),
   resetLevelButton: document.querySelector("#reset-level-button"),
   runProgramButton: document.querySelector("#run-program-button"),
@@ -223,6 +236,7 @@ function loadProgress() {
     state.unlockedLevel = clampNumber(saved.unlockedLevel, 1, LEVELS.length, 1);
     state.bestStars = sanitizeStars(saved.bestStars);
     state.hasSeenInfo = Boolean(saved.hasSeenInfo);
+    state.sensorIntro = sanitizeSensorIntro(saved.sensorIntro);
   } catch {
     applyDefaultProgress();
   }
@@ -236,6 +250,7 @@ function saveProgress() {
         unlockedLevel: state.unlockedLevel,
         bestStars: state.bestStars,
         hasSeenInfo: state.hasSeenInfo,
+        sensorIntro: state.sensorIntro,
       }),
     );
   } catch {
@@ -247,6 +262,8 @@ function applyDefaultProgress() {
   state.unlockedLevel = DEFAULT_PROGRESS.unlockedLevel;
   state.bestStars = {};
   state.hasSeenInfo = DEFAULT_PROGRESS.hasSeenInfo;
+  state.sensorIntro = { ...DEFAULT_PROGRESS.sensorIntro };
+  state.sensorIntroVisible = false;
 }
 
 function sanitizeStars(value) {
@@ -261,6 +278,17 @@ function sanitizeStars(value) {
 function clampNumber(value, minimum, maximum, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.min(maximum, Math.max(minimum, parsed)) : fallback;
+}
+
+function sanitizeSensorIntro(value) {
+  if (!value || typeof value !== "object") {
+    return { ...DEFAULT_PROGRESS.sensorIntro };
+  }
+  return {
+    shown: Boolean(value.shown),
+    dismissed: Boolean(value.dismissed),
+    used: Boolean(value.used),
+  };
 }
 
 // ----- Navigation and screens ----------------------------------------------
@@ -372,6 +400,7 @@ function initializeLevel({ keepProgram = false } = {}) {
   renderProgram();
   updateObjectiveStatus();
   updateControls();
+  updateSensorTip();
   showStatus("Bygg ett program och tryck på Kör!", "info");
 }
 
@@ -477,6 +506,20 @@ function renderCommandPalette() {
   );
 }
 
+function updateSensorTip() {
+  const isEligible =
+    getCurrentLevel().id === 5 &&
+    !state.sensorIntro.dismissed &&
+    !state.sensorIntro.used &&
+    !state.executionState.running;
+  if (isEligible && !state.sensorIntro.shown && !state.sensorIntroVisible) {
+    state.sensorIntroVisible = true;
+    markSensorIntroShown();
+  }
+  const shouldShow = isEligible && state.sensorIntroVisible;
+  elements.sensorTip.hidden = !shouldShow;
+}
+
 function renderProgram() {
   elements.programList.replaceChildren(
     ...state.programCommands.map((commandId, index) => {
@@ -551,6 +594,7 @@ function updateControls() {
   elements.runProgramButton.querySelector("span:last-child").textContent = running
     ? "Roboten kör…"
     : "Kör programmet";
+  updateSensorTip();
 }
 
 // ----- Command execution ----------------------------------------------------
@@ -611,7 +655,7 @@ async function executeCommand(commandId, runId, delay) {
   if (commandId === "forward") {
     const moved = attemptMoveForward();
     if (!moved) {
-      animateRobotClass("is-bumping", 360);
+      animateRobotReaction("is-bumping", prefersReducedMotion() ? 40 : 360);
       await wait(delay);
       return "collision";
     }
@@ -625,11 +669,13 @@ async function executeCommand(commandId, runId, delay) {
   if (commandId === "left" || commandId === "right") {
     turnRobot(commandId);
     updateRobotVisual();
+    animateRobotReaction("is-turning", prefersReducedMotion() ? 40 : 220);
     await wait(delay);
     return "turned";
   }
 
   if (commandId === "sensorRight") {
+    markSensorIntroUsed();
     showSensorPulse();
     const obstacleAhead = isBlockedAhead();
     showStatus(
@@ -641,6 +687,7 @@ async function executeCommand(commandId, runId, delay) {
     if (obstacleAhead) {
       turnRobot("right");
       updateRobotVisual();
+      animateRobotReaction("is-turning", prefersReducedMotion() ? 40 : 220);
     }
     await wait(delay);
     return obstacleAhead ? "sensor-turned" : "sensor-clear";
@@ -701,6 +748,7 @@ function checkCompletion() {
 function finishFailedRun(message) {
   state.executionState.running = false;
   state.executionState.activeCommandIndex = -1;
+  clearBoardEffects();
   renderProgram();
   updateControls();
   showStatus(message, "warning");
@@ -711,6 +759,7 @@ function finishSuccessfulRun() {
   state.completionShown = true;
   state.executionState.running = false;
   state.executionState.activeCommandIndex = -1;
+  clearBoardEffects();
   const level = getCurrentLevel();
   const stars = calculateStars(state.programCommands.length, level.targetCommands);
 
@@ -741,6 +790,7 @@ function cancelExecution() {
   state.executionState.runId += 1;
   state.executionState.running = false;
   state.executionState.activeCommandIndex = -1;
+  clearBoardEffects();
   updateControlsIfReady();
 }
 
@@ -756,22 +806,81 @@ function isRunActive(runId) {
 }
 
 function showSensorPulse() {
-  const previous = elements.board.querySelector(".sensor-wave");
-  previous?.remove();
+  clearBoardEffects();
+  const target = getForwardCell();
   const pulse = document.createElement("span");
-  pulse.className = "sensor-wave";
+  pulse.className = "sensor-pulse";
   pulse.style.setProperty("--robot-x", state.robot.x);
   pulse.style.setProperty("--robot-y", state.robot.y);
+  pulse.style.setProperty("--sensor-rotation", DIRECTION_ROTATIONS[state.robot.direction]);
   pulse.setAttribute("aria-hidden", "true");
   elements.board.append(pulse);
-  window.setTimeout(() => pulse.remove(), prefersReducedMotion() ? 20 : 520);
+  if (target) {
+    const targetMarker = document.createElement("span");
+    targetMarker.className = "sensor-target";
+    targetMarker.style.setProperty("--target-x", target.x);
+    targetMarker.style.setProperty("--target-y", target.y);
+    targetMarker.setAttribute("aria-hidden", "true");
+    elements.board.append(targetMarker);
+  }
+  window.setTimeout(clearBoardEffects, prefersReducedMotion() ? 40 : 380);
 }
 
-function animateRobotClass(className, duration) {
-  const visual = elements.board.querySelector(".robot-visual");
+function animateRobotClass(className, duration, selector = ".robot-visual") {
+  const visual = elements.board.querySelector(selector);
   if (!visual) return;
+  visual.classList.remove(className);
+  void visual.offsetWidth;
   visual.classList.add(className);
   if (duration) window.setTimeout(() => visual.classList.remove(className), duration);
+}
+
+function animateRobotReaction(className, duration) {
+  const selector = className === "is-turning" ? "#robot-piece" : ".robot-visual";
+  animateRobotClass(className, duration, selector);
+}
+
+function clearBoardEffects() {
+  elements.board.querySelector(".sensor-pulse")?.remove();
+  elements.board.querySelector(".sensor-target")?.remove();
+  elements.board.querySelector("#robot-piece")?.classList.remove("is-turning");
+  const visual = elements.board.querySelector(".robot-visual");
+  if (!visual) return;
+  visual.classList.remove("is-bumping");
+}
+
+function getForwardCell() {
+  const vector = DIRECTION_VECTORS[state.robot.direction];
+  const next = { x: state.robot.x + vector.x, y: state.robot.y + vector.y };
+  if (!isWithinBoard(next.x, next.y)) return next;
+  return next;
+}
+
+function isWithinBoard(x, y) {
+  const level = getCurrentLevel();
+  return x >= 0 && y >= 0 && x < level.size && y < level.size;
+}
+
+function markSensorIntroUsed() {
+  if (state.sensorIntro.used) return;
+  state.sensorIntro.used = true;
+  state.sensorIntroVisible = false;
+  saveProgress();
+  updateSensorTip();
+}
+
+function dismissSensorIntro() {
+  if (state.sensorIntro.dismissed) return;
+  state.sensorIntro.dismissed = true;
+  state.sensorIntroVisible = false;
+  saveProgress();
+  updateSensorTip();
+}
+
+function markSensorIntroShown() {
+  if (state.sensorIntro.shown) return;
+  state.sensorIntro.shown = true;
+  saveProgress();
 }
 
 // ----- Completion -----------------------------------------------------------
@@ -886,6 +995,7 @@ function bindEvents() {
     const commandButton = event.target.closest("[data-command]");
     if (commandButton) addCommand(commandButton.dataset.command);
   });
+  elements.sensorTipDismiss.addEventListener("click", dismissSensorIntro);
 
   elements.programList.addEventListener("click", (event) => {
     const removeButton = event.target.closest(".remove-command");
