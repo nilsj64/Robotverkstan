@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f7ff" />
+    <meta
+      name="description"
+      content="Robotverkstan – ett lekfullt programmeringsspel för barn."
+    />
+    <link rel="icon" href="data:," />
+    <title>Robotverkstan</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Hoppa till innehållet</a>
+
+    <div class="app-shell">
+      <header class="site-header" aria-label="Robotverkstans toppfält">
+        <button class="brand-button" id="brand-button" type="button" aria-label="Gå till startsidan">
+          <span class="brand-mark" aria-hidden="true">⚙</span>
+          <span>Robotverkstan</span>
+        </button>
+        <button class="icon-text-button" id="learn-header-button" type="button">
+          <span aria-hidden="true">💡</span>
+          <span>Vad lär jag mig?</span>
+        </button>
+      </header>
+
+      <main id="main-content" tabindex="-1">
+        <section class="screen start-screen is-active" id="start-screen" aria-labelledby="start-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Välkommen till verkstan!</p>
+            <h1 id="start-title">Bygg program.<br /><span>Få roboten i mål.</span></h1>
+            <p class="hero-text">
+              Programmera roboten, lös sex kluriga uppdrag och upptäck hur teknik fungerar.
+            </p>
+            <div class="hero-actions">
+              <button class="primary-button large-button" id="start-button" type="button">
+                Starta spelet <span aria-hidden="true">→</span>
+              </button>
+              <button class="secondary-button large-button" id="learn-start-button" type="button">
+                Vad lär jag mig?
+              </button>
+            </div>
+            <p class="micro-copy">
+              <span aria-hidden="true">✓</span> Ingen inloggning · Framsteg sparas på enheten
+            </p>
+          </div>
+
+          <div class="hero-workbench" aria-label="En glad robot i sin verkstad">
+            <div class="workbench-lights" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="hero-robot" aria-hidden="true">
+              <div class="hero-antenna"><i></i></div>
+              <div class="hero-head">
+                <span class="hero-eye"></span>
+                <span class="hero-eye"></span>
+                <span class="hero-mouth"></span>
+              </div>
+              <div class="hero-body">
+                <span class="hero-panel">01</span>
+                <span class="hero-arm left"></span>
+                <span class="hero-arm right"></span>
+              </div>
+            </div>
+            <div class="workbench-console" aria-hidden="true">
+              <span>FRAMÅT</span><span>SVÄNG</span><span>KÖR!</span>
+            </div>
+            <div class="floating-part part-one" aria-hidden="true">🔧</div>
+            <div class="floating-part part-two" aria-hidden="true">⚡</div>
+            <div class="floating-part part-three" aria-hidden="true">⚙️</div>
+          </div>
+        </section>
+
+        <section class="screen level-screen" id="level-screen" aria-labelledby="level-select-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Uppdragskartan</p>
+              <h1 id="level-select-title">Välj ett uppdrag</h1>
+              <p>Varje uppdrag lär roboten – och dig – något nytt.</p>
+            </div>
+            <div class="progress-badge" id="progress-badge" aria-live="polite">0 av 6 klara</div>
+          </div>
+
+          <div class="level-grid" id="level-grid" aria-label="Tillgängliga uppdrag"></div>
+
+          <div class="level-footer-actions">
+            <button class="text-button" id="back-start-button" type="button">← Till startsidan</button>
+            <button class="text-button danger-text" id="reset-progress-button" type="button">
+              Nollställ framsteg
+            </button>
+          </div>
+        </section>
+
+        <section class="screen game-screen" id="game-screen" aria-labelledby="game-title">
+          <div class="game-topbar">
+            <button class="back-button" id="back-levels-button" type="button">
+              <span aria-hidden="true">←</span> Uppdrag
+            </button>
+            <div class="level-progress">
+              <span id="level-progress-text">Nivå 1 av 6</span>
+              <div class="progress-track" aria-hidden="true"><span id="level-progress-fill"></span></div>
+            </div>
+            <button class="icon-button" id="learn-game-button" type="button" aria-label="Vad lär jag mig?">
+              ?
+            </button>
+          </div>
+
+          <div class="mission-banner">
+            <div class="mission-number" id="mission-number" aria-hidden="true">01</div>
+            <div>
+              <p class="eyebrow">Ditt uppdrag</p>
+              <h1 id="game-title">Första stegen</h1>
+              <p id="mission-text"></p>
+            </div>
+            <div class="objective-pill" id="objective-status" aria-live="polite"></div>
+          </div>
+
+          <div class="game-layout">
+            <section class="board-card" aria-labelledby="board-title">
+              <div class="card-heading">
+                <div>
+                  <p class="card-kicker">Testområde</p>
+                  <h2 id="board-title">Robotbana</h2>
+                </div>
+                <div class="direction-legend" id="direction-legend">Roboten tittar åt höger</div>
+              </div>
+              <div
+                class="game-board"
+                id="game-board"
+                role="grid"
+                aria-label="Robotbana med fem gånger fem rutor"
+              ></div>
+              <div class="board-legend" aria-label="Förklaring">
+                <span><i class="legend-goal" aria-hidden="true"></i>Mål</span>
+                <span><i class="legend-wall" aria-hidden="true"></i>Hinder</span>
+                <span id="energy-legend"><i class="legend-energy" aria-hidden="true">⚡</i>Energi</span>
+              </div>
+            </section>
+
+            <section class="program-card" aria-labelledby="program-title">
+              <div class="card-heading program-heading">
+                <div>
+                  <p class="card-kicker">Kontrollpanel</p>
+                  <h2 id="program-title">Mitt program</h2>
+                </div>
+                <span class="command-count" id="command-count">0 / 5</span>
+              </div>
+
+              <div class="program-list-wrap">
+                <ol class="program-list" id="program-list" aria-label="Programmets instruktioner"></ol>
+                <div class="empty-program" id="empty-program">
+                  <span aria-hidden="true">＋</span>
+                  <p>Tryck på en instruktion nedan för att bygga ditt program.</p>
+                </div>
+              </div>
+
+              <div class="command-section">
+                <p class="control-label">Lägg till instruktion</p>
+                <div class="command-palette" id="command-palette"></div>
+              </div>
+
+              <div class="program-tools">
+                <button class="small-button" id="clear-program-button" type="button">
+                  <span aria-hidden="true">⌫</span> Töm program
+                </button>
+                <button class="small-button" id="reset-level-button" type="button">
+                  <span aria-hidden="true">↺</span> Börja om
+                </button>
+              </div>
+
+              <button class="run-button" id="run-program-button" type="button">
+                <span class="run-icon" aria-hidden="true">▶</span>
+                <span>Kör programmet</span>
+              </button>
+
+              <div class="status-message is-info" id="status-message" role="status" aria-live="polite">
+                Bygg ett program och tryck på Kör!
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>Robotverkstan</span>
+        <span>En robot tänker inte som en människa. Den följer sitt program och sina sensorer.</span>
+      </footer>
+    </div>
+
+    <dialog class="info-dialog" id="learn-dialog" aria-labelledby="learn-title">
+      <div class="dialog-top">
+        <div class="dialog-icon" aria-hidden="true">💡</div>
+        <button class="close-button" id="close-learn-button" type="button" aria-label="Stäng">×</button>
+      </div>
+      <h2 id="learn-title">Vad lär jag mig?</h2>
+      <p>
+        Du tränar på att ge instruktioner till en robot. Robotar använder program och sensorer
+        för att veta vad de ska göra. När du testar och ändrar ditt program
+        <strong>felsöker</strong> du.
+      </p>
+      <div class="concept-list">
+        <span><i aria-hidden="true">1</i> Ordning</span>
+        <span><i aria-hidden="true">↻</i> Felsökning</span>
+        <span><i aria-hidden="true">◉</i> Sensorer</span>
+      </div>
+      <p class="dialog-note">
+        Programmerat beteende är inte automatiskt AI. Senare kan verkstan också visa hur en AI
+        lär sig av exempel.
+      </p>
+      <button class="primary-button dialog-button" id="learn-ok-button" type="button">Jag fattar!</button>
+    </dialog>
+
+    <dialog class="completion-dialog" id="completion-dialog" aria-labelledby="completion-title">
+      <div class="celebration" aria-hidden="true"><span>✦</span><span>●</span><span>★</span><span>✦</span></div>
+      <div class="completion-robot" aria-hidden="true">🤖</div>
+      <p class="eyebrow">Uppdrag klart!</p>
+      <h2 id="completion-title">Snyggt programmerat!</h2>
+      <div class="stars" id="completion-stars" aria-label="Tre stjärnor">★★★</div>
+      <p class="completion-message" id="completion-message"></p>
+      <div class="learning-card">
+        <span aria-hidden="true">💡</span>
+        <p><strong>Du lärde dig:</strong> <span id="completion-learning"></span></p>
+      </div>
+      <div class="completion-actions">
+        <button class="primary-button" id="next-level-button" type="button">Nästa uppdrag →</button>
+        <button class="secondary-button" id="retry-level-button" type="button">Spela igen</button>
+        <button class="text-button" id="completion-levels-button" type="button">Till uppdragskartan</button>
+      </div>
+    </dialog>
+
+    <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title">
+      <div class="dialog-icon warning" aria-hidden="true">↺</div>
+      <h2 id="confirm-title">Nollställa allt?</h2>
+      <p>Alla stjärnor försvinner och bara det första uppdraget är upplåst.</p>
+      <div class="confirm-actions">
+        <button class="secondary-button" id="cancel-reset-button" type="button">Avbryt</button>
+        <button class="danger-button" id="confirm-reset-button" type="button">Ja, nollställ</button>
+      </div>
+    </dialog>
+  </body>
+</html>
