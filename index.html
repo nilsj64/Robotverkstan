@@ -34,7 +34,7 @@
             <p class="eyebrow">Välkommen till verkstan!</p>
             <h1 id="start-title">Bygg program.<br /><span>Få roboten i mål.</span></h1>
             <p class="hero-text">
-              Programmera roboten, lös sex kluriga uppdrag och upptäck hur teknik fungerar.
+              Programmera roboten, lös åtta kluriga uppdrag och upptäck hur teknik fungerar.
             </p>
             <div class="hero-actions">
               <button class="primary-button large-button" id="start-button" type="button">
@@ -82,7 +82,7 @@
               <h1 id="level-select-title">Välj ett uppdrag</h1>
               <p>Varje uppdrag lär roboten – och dig – något nytt.</p>
             </div>
-            <div class="progress-badge" id="progress-badge" aria-live="polite">0 av 6 klara</div>
+            <div class="progress-badge" id="progress-badge" aria-live="polite">0 av 8 klara</div>
           </div>
 
           <div class="level-grid" id="level-grid" aria-label="Tillgängliga uppdrag"></div>
@@ -101,7 +101,7 @@
               <span aria-hidden="true">←</span> Uppdrag
             </button>
             <div class="level-progress">
-              <span id="level-progress-text">Nivå 1 av 6</span>
+              <span id="level-progress-text">Nivå 1 av 8</span>
               <div class="progress-track" aria-hidden="true"><span id="level-progress-fill"></span></div>
             </div>
           </div>
@@ -135,6 +135,8 @@
                 <span><i class="legend-goal" aria-hidden="true"></i>Mål</span>
                 <span><i class="legend-wall" aria-hidden="true"></i>Hinder</span>
                 <span id="energy-legend"><i class="legend-energy" aria-hidden="true">⚡</i>Energi</span>
+                <span id="package-legend" hidden><i class="legend-package" aria-hidden="true"></i>Paket</span>
+                <span id="delivery-legend" hidden><i class="legend-delivery" aria-hidden="true"></i>Leverans</span>
               </div>
             </section>
 
@@ -195,6 +197,20 @@
             </section>
           </div>
         </section>
+
+        <section class="screen ai-lab-screen" id="ai-lab-screen" aria-labelledby="ai-lab-title">
+          <div class="game-topbar">
+            <button class="back-button ai-back-button" id="back-ai-levels-button" type="button"><span aria-hidden="true">←</span> Uppdragskartan</button>
+            <div class="ai-stage-progress" id="ai-stage-progress" aria-live="polite"></div>
+          </div>
+          <div class="ai-lab-banner">
+            <div class="ai-lab-mark" aria-hidden="true">AI</div>
+            <div><p class="eyebrow">Nytt kapitel</p><h1 id="ai-lab-title" tabindex="-1">AI-labbet</h1><p>Det du lär roboten förändrar spelet.</p></div>
+            <div class="ai-camera-status" id="ai-camera-status"></div>
+          </div>
+          <div id="ai-lab-content"></div>
+          <div class="status-message is-info ai-status" id="ai-status" role="status" aria-live="polite">Välj träningskort för att börja.</div>
+        </section>
       </main>
 
       <footer class="site-footer">
@@ -219,9 +235,9 @@
         <span><i aria-hidden="true">↻</i> Felsökning</span>
         <span><i aria-hidden="true">◉</i> Sensorer</span>
       </div>
+      <p>Loopar upprepar instruktioner. Motorer och robotarmar är aktuatorer som får roboten att göra saker i världen.</p>
       <p class="dialog-note">
-        Programmerat beteende är inte automatiskt AI. Senare kan verkstan också visa hur en AI
-        lär sig av exempel.
+        Programmering följer regler exakt. AI lär sig mönster från exempel och kan ge fel svar.
       </p>
       <button class="primary-button dialog-button" id="learn-ok-button" type="button">Jag fattar!</button>
     </dialog>
@@ -247,7 +263,7 @@
     <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title">
       <div class="dialog-icon warning" aria-hidden="true">↺</div>
       <h2 id="confirm-title">Nollställa allt?</h2>
-      <p>Alla stjärnor försvinner och bara det första uppdraget är upplåst.</p>
+      <p>Alla stjärnor och AI-labbets framsteg försvinner. Bara det första uppdraget är upplåst.</p>
       <div class="confirm-actions">
         <button class="secondary-button" id="cancel-reset-button" type="button">Avbryt</button>
         <button class="danger-button" id="confirm-reset-button" type="button">Ja, nollställ</button>
