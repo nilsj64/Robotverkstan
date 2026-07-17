@@ -185,6 +185,7 @@ const elements = {
   brandButton: document.querySelector("#brand-button"),
   startButton: document.querySelector("#start-button"),
   learnHeaderButton: document.querySelector("#learn-header-button"),
+  learnHeroButton: document.querySelector("#learn-hero-button"),
   backStartButton: document.querySelector("#back-start-button"),
   backLevelsButton: document.querySelector("#back-levels-button"),
   levelGrid: document.querySelector("#level-grid"),
@@ -200,6 +201,7 @@ const elements = {
   board: document.querySelector("#game-board"),
   energyLegend: document.querySelector("#energy-legend"),
   programList: document.querySelector("#program-list"),
+  programListWrap: document.querySelector(".program-list-wrap"),
   emptyProgram: document.querySelector("#empty-program"),
   commandCount: document.querySelector("#command-count"),
   commandPalette: document.querySelector("#command-palette"),
@@ -359,15 +361,30 @@ function renderLevelSelection() {
       card.innerHTML = `
         <span class="level-card-top">
           <span class="level-card-number">${String(level.id).padStart(2, "0")}</span>
-          <span class="level-card-icon" aria-hidden="true">${isUnlocked ? level.icon : "🔒"}</span>
+          <span class="level-card-icon" aria-hidden="true">${renderLevelIcon(level.id, !isUnlocked)}</span>
         </span>
         <h2>${level.title}</h2>
         <p>${level.cardText}</p>
         <span class="level-stars" aria-hidden="true">${renderStarsHtml(stars)}</span>
+        ${isUnlocked ? '<span class="level-card-action" aria-hidden="true">Öppna <i>→</i></span>' : ""}
       `;
       return card;
     }),
   );
+}
+
+function renderLevelIcon(levelId, isLocked = false) {
+  const icons = {
+    lock: '<path d="M12 18v-5a8 8 0 0 1 16 0v5"/><rect class="icon-accent" x="8" y="17" width="24" height="18" rx="5"/><path d="M20 24v5"/>',
+    1: '<path class="icon-accent" d="M10 5c4 0 7 3 7 7v5c0 3-2 5-5 5s-5-2-5-5v-6c0-3 1-5 3-6Z"/><path class="icon-accent" d="M28 18c4 0 6 3 6 7v4c0 4-2 6-5 6s-5-2-5-5v-6c0-3 2-5 4-6Z"/><path d="M10 9h7M27 22h7"/>',
+    2: '<path d="M8 29h12c8 0 12-4 12-12v-5"/><path class="icon-accent" d="m25 17 7-7 7 7"/>',
+    3: '<path d="M14 14V9h12v5"/><rect class="icon-accent" x="5" y="13" width="30" height="21" rx="5"/><path d="M5 21h30M18 20v5h4v-5"/>',
+    4: '<path class="icon-accent" d="M23 3 9 23h10l-2 14 14-21H21l2-13Z"/>',
+    5: '<circle class="icon-accent" cx="10" cy="30" r="3"/><path d="M10 24a6 6 0 0 1 6 6M10 17a13 13 0 0 1 13 13M10 10a20 20 0 0 1 20 20"/>',
+    6: '<path d="M9 36V5"/><path class="icon-accent" d="M10 7h23v17H10z"/><path d="M21.5 7v17M10 15.5h23"/>',
+  };
+  const icon = icons[isLocked ? "lock" : levelId] || icons.lock;
+  return `<svg class="workshop-icon" viewBox="0 0 40 40" aria-hidden="true" focusable="false">${icon}</svg>`;
 }
 
 // ----- Level and board rendering -------------------------------------------
@@ -430,7 +447,7 @@ function renderBoard() {
         const energy = document.createElement("span");
         energy.className = "energy-cell";
         energy.dataset.energyIndex = String(energyIndex);
-        energy.textContent = "⚡";
+        energy.textContent = "";
         energy.setAttribute("aria-hidden", "true");
         cell.append(energy);
       }
@@ -541,7 +558,9 @@ function renderProgram() {
   );
 
   const level = getCurrentLevel();
-  elements.emptyProgram.classList.toggle("is-hidden", state.programCommands.length > 0);
+  const isEmpty = state.programCommands.length === 0;
+  elements.emptyProgram.classList.toggle("is-hidden", !isEmpty);
+  elements.programListWrap.classList.toggle("is-empty", isEmpty);
   elements.commandCount.textContent = `${state.programCommands.length} / ${level.maxCommands}`;
   elements.commandCount.classList.toggle(
     "is-full",
@@ -560,6 +579,7 @@ function addCommand(commandId) {
   }
   state.programCommands.push(commandId);
   renderProgram();
+  elements.programList.lastElementChild?.classList.add("is-new");
   showStatus(`Instruktionen ${COMMANDS[commandId].label} lades till.`, "info");
   elements.programList.lastElementChild?.scrollIntoView({ block: "nearest" });
 }
@@ -970,12 +990,22 @@ function resetAllProgress() {
 // ----- Events ---------------------------------------------------------------
 
 function bindEvents() {
+  document.addEventListener(
+    "pointerdown",
+    () => document.documentElement.classList.add("is-pointer-input"),
+    { passive: true },
+  );
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Tab") document.documentElement.classList.remove("is-pointer-input");
+  });
+
   elements.startButton.addEventListener("click", () => showScreen("level"));
   elements.brandButton.addEventListener("click", () => showScreen("start"));
   elements.backStartButton.addEventListener("click", () => showScreen("start"));
   elements.backLevelsButton.addEventListener("click", () => showScreen("level"));
 
   elements.learnHeaderButton.addEventListener("click", openLearnDialog);
+  elements.learnHeroButton.addEventListener("click", openLearnDialog);
   elements.closeLearnButton.addEventListener("click", closeLearnDialog);
   elements.learnOkButton.addEventListener("click", closeLearnDialog);
   elements.learnDialog.addEventListener("click", (event) => {
