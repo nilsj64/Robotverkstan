@@ -438,6 +438,7 @@ const elements = {
   metaDescription: document.querySelector('meta[name="description"]'),
   heroText: document.querySelector(".hero-text"),
   startButton: document.querySelector("#start-button"),
+  learnHeroButton: document.querySelector("#learn-hero-button"),
   learnHeaderButton: document.querySelector("#learn-header-button"),
   backStartButton: document.querySelector("#back-start-button"),
   backLevelsButton: document.querySelector("#back-levels-button"),
@@ -762,6 +763,7 @@ function renderLevelSelection() {
         <h2>${level.title}</h2>
         <p>${level.cardText}</p>
         <span class="level-stars" aria-hidden="true">${renderStarsHtml(stars)}</span>
+        ${isUnlocked ? '<span class="level-card-action" aria-hidden="true">Öppna <i>→</i></span>' : ""}
       `;
       cards.push(card);
     });
@@ -979,7 +981,7 @@ function updateSensorTip() {
   elements.sensorTip.hidden = !shouldShow;
 }
 
-function renderProgram() {
+function renderProgram({ newCommandIndex = -1 } = {}) {
   const authoredCount = countAuthoredBlocks(state.programCommands);
   elements.programList.replaceChildren(
     ...state.programCommands.map((commandBlock, index) => {
@@ -989,7 +991,7 @@ function renderProgram() {
       const isRepeat = commandId === "repeat";
       item.className = `program-step${isRepeat ? " repeat-step" : ""}${
         state.executionState.activeCommandIndex === index ? " is-active" : ""
-      }`;
+      }${index === newCommandIndex ? " is-new" : ""}`;
       item.dataset.commandIndex = String(index);
       if (!isRepeat) {
         item.innerHTML = `
@@ -1067,6 +1069,7 @@ function renderProgram() {
   );
 
   const level = getCurrentLevel();
+  elements.programList.parentElement.classList.toggle("is-empty", state.programCommands.length === 0);
   elements.emptyProgram.classList.toggle("is-hidden", state.programCommands.length > 0);
   elements.commandCount.textContent = `${authoredCount} / ${level.maxCommands}`;
   elements.commandCount.classList.toggle(
@@ -1085,7 +1088,7 @@ function addCommand(commandId) {
     return;
   }
   state.programCommands.push(createCommandBlock(commandId));
-  renderProgram();
+  renderProgram({ newCommandIndex: state.programCommands.length - 1 });
   showStatus(`Instruktionen ${COMMANDS[commandId].label} lades till.`, "info");
   elements.programList.lastElementChild?.scrollIntoView({ block: "nearest" });
 }
@@ -1756,7 +1759,10 @@ function renderAITrainingStage() {
       </section>
       <aside class="ai-summary" aria-label="Min träningssamling">
         ${renderAIModelOutdatedNotice()}
-        <div class="ai-balance">${balance}</div>
+        <div class="ai-summary-heading">
+          <div><p class="card-kicker">Dina märkta kort</p><h2>Min träningssamling</h2></div>
+          <div class="ai-balance">${balance}</div>
+        </div>
         ${renderAISummaryGroup("Mina metallexempel", "metal", metalItems)}
         ${renderAISummaryGroup("Mina plastexempel", "plastic", plasticItems)}
         <p class="ai-helper-text">En jämn och varierad träningssamling kan hjälpa AI:n, men det är testet som visar hur modellen fungerar.</p>
@@ -1779,9 +1785,10 @@ function renderAIModelOutdatedNotice() {
 function renderAITrainingCandidate(item) {
   const assignedLabel = state.aiLab.labels[item.id];
   const active = state.aiLab.activeCandidateId === item.id;
+  const assignmentText = assignedLabel ? ` Märkt som ${formatAICategory(assignedLabel)}.` : " Inte märkt.";
   return `
     <article class="ai-object-card${assignedLabel ? " is-selected" : ""}${active ? " is-active" : ""}">
-      <button class="ai-card-main" type="button" data-ai-candidate="${item.id}" aria-expanded="${active || Boolean(assignedLabel)}">
+      <button class="ai-card-main" type="button" data-ai-candidate="${item.id}" aria-expanded="${active || Boolean(assignedLabel)}" aria-label="${item.name}. ${item.description}${assignmentText} Välj kortet för att visa märkning.">
         ${renderAIObjectVisual(item, { decorative: true })}
         <strong>${item.name}</strong>
         <small>${item.description}</small>
@@ -1791,8 +1798,8 @@ function renderAITrainingCandidate(item) {
       ${
         active || assignedLabel
           ? `<div class="ai-label-actions" aria-label="Märk ${item.name}">
-              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="metal">Metall</button>
-              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="plastic">Plast</button>
+              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="metal" aria-label="Märk ${item.name} som Metall" aria-pressed="${assignedLabel === "metal"}">${assignedLabel === "metal" ? '<span aria-hidden="true">✓ </span>' : ""}Metall</button>
+              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="plastic" aria-label="Märk ${item.name} som Plast" aria-pressed="${assignedLabel === "plastic"}">${assignedLabel === "plastic" ? '<span aria-hidden="true">✓ </span>' : ""}Plast</button>
             </div>`
           : ""
       }
@@ -1820,8 +1827,8 @@ function renderAISummaryItem(item, label) {
       ${renderAIObjectVisual(item, { size: "summary", decorative: true })}
       <span><strong>${item.name}</strong><small>Märkt som ${formatAICategory(label)}</small></span>
       <span class="ai-summary-actions">
-        <button class="ai-item-action" type="button" data-ai-label-id="${item.id}" data-label="${otherLabel}">Byt till ${formatAICategory(otherLabel)}</button>
-        <button class="ai-item-action" type="button" data-ai-remove="${item.id}">Ta bort</button>
+        <button class="ai-item-action" type="button" data-ai-label-id="${item.id}" data-label="${otherLabel}" aria-label="Märk ${item.name} som ${formatAICategoryTitle(otherLabel)}">Byt till ${formatAICategory(otherLabel)}</button>
+        <button class="ai-item-action" type="button" data-ai-remove="${item.id}" aria-label="Ta bort ${item.name} från träningssamlingen">Ta bort</button>
       </span>
     </div>
   `;
@@ -2580,6 +2587,13 @@ function resetAllProgress() {
 // ----- Events ---------------------------------------------------------------
 
 function bindEvents() {
+  document.addEventListener("pointerdown", () => {
+    document.body.classList.add("is-pointer-input");
+  });
+  document.addEventListener("keydown", () => {
+    document.body.classList.remove("is-pointer-input");
+  });
+
   elements.startButton.addEventListener("click", () => showScreen("level"));
   elements.brandButton.addEventListener("click", () => showScreen("start"));
   elements.backStartButton.addEventListener("click", () => showScreen("start"));
@@ -2587,6 +2601,7 @@ function bindEvents() {
   elements.backAILevelsButton.addEventListener("click", () => showScreen("level"));
 
   elements.learnHeaderButton.addEventListener("click", openLearnDialog);
+  elements.learnHeroButton.addEventListener("click", openLearnDialog);
   elements.closeLearnButton.addEventListener("click", closeLearnDialog);
   elements.learnOkButton.addEventListener("click", closeLearnDialog);
   elements.learnDialog.addEventListener("click", (event) => {

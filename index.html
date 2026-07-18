@@ -199,17 +199,22 @@
         </section>
 
         <section class="screen ai-lab-screen" id="ai-lab-screen" aria-labelledby="ai-lab-title">
-          <div class="game-topbar">
-            <button class="back-button ai-back-button" id="back-ai-levels-button" type="button"><span aria-hidden="true">←</span> Uppdragskartan</button>
-            <div class="ai-stage-progress" id="ai-stage-progress" aria-live="polite"></div>
+          <div class="ai-lab-shell">
+            <div class="ai-lab-topbar">
+              <button class="back-button ai-back-button" id="back-ai-levels-button" type="button"><span aria-hidden="true">←</span> Uppdragskartan</button>
+            </div>
+            <header class="ai-lab-banner">
+              <div class="ai-lab-mark" aria-hidden="true">AI</div>
+              <div class="ai-lab-heading"><p class="eyebrow">Nytt kapitel</p><h1 id="ai-lab-title" tabindex="-1">AI-labbet</h1><p>Det du lär roboten förändrar spelet.</p></div>
+              <div class="ai-lab-meta">
+                <div class="ai-stage-progress" id="ai-stage-progress" aria-live="polite"></div>
+                <div class="ai-camera-status" id="ai-camera-status"></div>
+              </div>
+              <span class="ai-hero-motif" aria-hidden="true"></span>
+            </header>
+            <div class="ai-lab-main" id="ai-lab-content"></div>
+            <div class="status-message is-info ai-status" id="ai-status" role="status" aria-live="polite">Välj träningskort för att börja.</div>
           </div>
-          <div class="ai-lab-banner">
-            <div class="ai-lab-mark" aria-hidden="true">AI</div>
-            <div><p class="eyebrow">Nytt kapitel</p><h1 id="ai-lab-title" tabindex="-1">AI-labbet</h1><p>Det du lär roboten förändrar spelet.</p></div>
-            <div class="ai-camera-status" id="ai-camera-status"></div>
-          </div>
-          <div id="ai-lab-content"></div>
-          <div class="status-message is-info ai-status" id="ai-status" role="status" aria-live="polite">Välj träningskort för att börja.</div>
         </section>
       </main>
 
