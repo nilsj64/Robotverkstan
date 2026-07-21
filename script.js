@@ -593,6 +593,7 @@ const elements = {
   brandProductNames: [...document.querySelectorAll("[data-brand-product-name]")],
   brandHeaderLabel: document.querySelector("[data-brand-header-label]"),
   demoNotice: document.querySelector("#demo-notice"),
+  developmentDemoButton: document.querySelector("#development-demo-button"),
   metaDescription: document.querySelector('meta[name="description"]'),
   heroText: document.querySelector(".hero-text"),
   startButton: document.querySelector("#start-button"),
@@ -1004,6 +1005,14 @@ function openLearnDialog() {
   state.hasSeenInfo = true;
   saveProgress();
   if (!elements.learnDialog.open) elements.learnDialog.showModal();
+}
+
+function startDevelopmentDemo() {
+  const demoUrl = new URL(window.location.href);
+  demoUrl.searchParams.set("demo", "1");
+  demoUrl.searchParams.delete("level");
+  demoUrl.searchParams.delete("screen");
+  window.location.assign(demoUrl.toString());
 }
 
 function closeLearnDialog() {
@@ -3650,6 +3659,7 @@ function bindEvents() {
   elements.backAILevelsButton.addEventListener("click", () => showScreen("level"));
 
   elements.learnHeaderButton.addEventListener("click", openLearnDialog);
+  elements.developmentDemoButton.addEventListener("click", startDevelopmentDemo);
   elements.learnHeroButton.addEventListener("click", openLearnDialog);
   elements.closeLearnButton.addEventListener("click", closeLearnDialog);
   elements.learnOkButton.addEventListener("click", closeLearnDialog);

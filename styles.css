@@ -2068,6 +2068,37 @@ a:focus-visible {
   background: #e5e7e3;
 }
 
+.header-actions {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.development-demo-button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 2px dashed var(--workshop-navy);
+  border-radius: 10px;
+  background: repeating-linear-gradient(135deg, #fff8dc 0 7px, #fffdf7 7px 14px);
+  box-shadow: 2px 2px 0 rgba(15, 30, 58, 0.22);
+  color: var(--workshop-navy);
+  font-size: 0.76rem;
+  font-weight: 1000;
+}
+
+.development-demo-button:hover {
+  background: var(--workshop-yellow);
+  transform: translate(-1px, -1px);
+}
+
+.development-demo-button:active {
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+
 .learn-icon {
   position: relative;
   display: inline-block;
@@ -2563,6 +2594,10 @@ a:focus-visible {
   padding-block: 8px;
 }
 
+.is-demo-mode .header-actions {
+  margin-left: auto;
+}
+
 .is-demo-mode .demo-notice {
   order: 3;
   flex-basis: 100%;
@@ -2902,7 +2937,17 @@ dialog::backdrop {
 }
 
 @media (max-width: 600px) {
-  .site-header { min-height: 62px; }
+  .site-header { min-height: 62px; gap: 6px; flex-wrap: wrap; }
+
+  .header-actions {
+    margin-left: auto;
+  }
+
+  .development-demo-button {
+    padding-inline: 8px;
+    font-size: 0.7rem;
+  }
+
   .start-screen { gap: 34px; padding-top: 28px; }
   .hero-copy h1 { font-size: clamp(2.65rem, 13vw, 4rem); }
   .hero-actions { grid-template-columns: 1fr; }
