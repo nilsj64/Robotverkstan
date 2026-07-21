@@ -22,6 +22,7 @@
           <span class="brand-mark" aria-hidden="true"><i></i></span>
           <span>Robotverkstan</span>
         </button>
+        <p class="demo-notice" id="demo-notice" role="status" hidden>DEMOLÄGE – framsteg sparas inte</p>
         <button class="icon-text-button" id="learn-header-button" type="button">
           <span class="learn-icon" aria-hidden="true"></span>
           <span>Vad lär jag mig?</span>
@@ -179,6 +180,12 @@
                 <p id="prediction-question"></p>
                 <div class="prediction-options" id="prediction-options"></div>
                 <p class="prediction-result" id="prediction-result" role="status" aria-live="polite"></p>
+              </section>
+
+              <section class="condition-intro" id="condition-intro" aria-labelledby="condition-intro-title" hidden>
+                <h3 id="condition-intro-title">Ett Om-block har två delar</h3>
+                <p><strong>DÅ</strong> körs när sensorn hittar ett hinder.</p>
+                <p><strong>ANNARS</strong> körs när vägen är fri.</p>
               </section>
 
               <div class="command-section">

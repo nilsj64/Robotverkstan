@@ -299,7 +299,7 @@ const LEVEL_HINTS = {
   6: ["Uppdraget kräver både energi, sensor och mål.", "Följ programmet tills sensorn står framför den övre väggen.", "Hämta energin först och låt sensorn välja svängen vid hindret."],
   7: ["Vilken instruktion behöver roboten göra flera gånger?", "Prova att lägga Framåt inuti Upprepa-blocket.", "Loopen behöver fyra varv för att nå målet."],
   8: ["Paketet måste hämtas innan roboten kör genom det.", "Ställ roboten bredvid paketet och använd Plocka upp.", "Leveransplatsen måste vara framför roboten när Lämna körs."],
-  9: ["Sensorn ger information. Villkoret väljer vad programmet gör.", "Lägg svängen i DÅ-grenen när sensorn hittar hindret.", "Kör fram till väggen, använd Om-blocket och fortsätt sedan mot målet."],
+  9: ["Sensorn ger information. Villkoret väljer vad programmet gör.", "Lägg svängen i DÅ-delen när sensorn hittar hindret.", "Kör fram till väggen, använd Om-blocket och fortsätt sedan mot målet."],
   10: ["Samma sensorfråga kan få olika svar på olika platser.", "Följ spåret och leta efter både JA och NEJ.", "Använd tre Om-block: två vid hinder och ett där vägen är fri."],
   11: ["Paketsensorn hittar paketet men robotarmen måste plocka.", "Lägg Plocka upp i DÅ-grenen.", "Efter hämtningen kan en loop köra längs den raka leveransvägen."],
   12: ["Kameran måste skanna innan AI-villkoret kan läsa gissningen.", "DÅ-grenen går till metallstationen och ANNARS till plaststationen.", "Varje gren behöver lämna föremålet och återvända till den markerade säkra rutan."],
@@ -314,7 +314,7 @@ const MASTERY_CRITERIA = {
   6: ["Klara hela uppdraget", "Använd sensorn", "Samla energi utan kollision"],
   7: ["Nå laddstationen", "Använd en loop", "Använd högst 2 byggda block"],
   8: ["Leverera paketet", "Undvik ogiltiga armkommandon", "Använd högst 12 byggda block"],
-  9: ["Nå laddstationen", "Använd ett villkor", "Låt sensorn välja rätt gren"],
+  9: ["Nå laddstationen", "Använd ett villkor", "Låt sensorn välja rätt del"],
   10: ["Nå laddstationen", "Få både JA och NEJ", "Använd högst 11 byggda block"],
   11: ["Leverera paketet", "Använd paketsensorns villkor", "Undvik ogiltiga armkommandon"],
   12: ["Sortera alla tre föremål", "Slutför utan programfel", "Använd AI-villkoret och högst 16 block"],
@@ -327,7 +327,7 @@ LEVELS.forEach((level) => {
 
 LEVELS[0].prediction = { question: "Var tror du att roboten stannar?", options: ["Före målet", "På målet", "Efter målet"] };
 LEVELS[6].prediction = { question: "Hur många Framåt tror du att loopen kör?", options: ["2", "3", "4"] };
-LEVELS[8].prediction = { question: "Vilken gren körs vid väggen?", options: ["DÅ – hinder", "ANNARS – fri väg"] };
+LEVELS[8].prediction = { question: "Vad händer när sensorn hittar ett hinder?", options: ["DÅ-delen körs", "ANNARS-delen körs"] };
 LEVELS[11].prediction = { question: "Vilken station väljer modellen för första föremålet?", options: ["Metall", "Plast"] };
 
 const AI_FEATURE_KEYS = ["shine", "transparency", "roundness", "blueAmount", "roughness"];
@@ -506,6 +506,16 @@ const AI_OBJECTS = [
 ];
 
 const STORAGE_KEY = "robotverkstan-progress-v1";
+const demoParams = new URLSearchParams(window.location.search);
+const requestedDemoLevel = Number(demoParams.get("level"));
+const demoState = {
+  enabled: demoParams.get("demo") === "1",
+  unlockAll: demoParams.get("demo") === "1",
+  requestedLevel: Number.isInteger(requestedDemoLevel) && LEVELS.some((level) => level.id === requestedDemoLevel)
+    ? requestedDemoLevel
+    : null,
+  requestedScreen: demoParams.get("screen") === "ai-lab" ? "ai-lab" : null,
+};
 const DEFAULT_PROGRESS = Object.freeze({
   unlockedLevel: 1,
   bestStars: {},
@@ -582,6 +592,7 @@ const elements = {
   brandButton: document.querySelector("#brand-button"),
   brandProductNames: [...document.querySelectorAll("[data-brand-product-name]")],
   brandHeaderLabel: document.querySelector("[data-brand-header-label]"),
+  demoNotice: document.querySelector("#demo-notice"),
   metaDescription: document.querySelector('meta[name="description"]'),
   heroText: document.querySelector(".hero-text"),
   startButton: document.querySelector("#start-button"),
@@ -620,6 +631,7 @@ const elements = {
   predictionOptions: document.querySelector("#prediction-options"),
   predictionSkip: document.querySelector("#prediction-skip"),
   predictionResult: document.querySelector("#prediction-result"),
+  conditionIntro: document.querySelector("#condition-intro"),
   sensorTip: document.querySelector("#sensor-tip"),
   sensorTipDismiss: document.querySelector("#sensor-tip-dismiss"),
   clearProgramButton: document.querySelector("#clear-program-button"),
@@ -685,6 +697,7 @@ function loadProgress() {
 }
 
 function saveProgress() {
+  if (demoState.enabled) return;
   try {
     localStorage.setItem(
       STORAGE_KEY,
@@ -1043,7 +1056,7 @@ function renderLevelSelection() {
       `;
       cards.push(card);
     });
-  const aiUnlocked = Boolean(state.bestStars["8"]);
+  const aiUnlocked = demoState.unlockAll || Boolean(state.bestStars["8"]);
   const aiCard = document.createElement("button");
   aiCard.type = "button";
   aiCard.className = `ai-chapter-card${aiUnlocked ? "" : " is-locked"}`;
@@ -1081,6 +1094,7 @@ function renderLevelSelection() {
 }
 
 function isLevelUnlocked(level) {
+  if (demoState.unlockAll) return true;
   if (level.signature) return Boolean(state.bestStars["11"] && state.aiLab.installed && state.aiLab.installedSignature === createAITrainingSignature(state.aiLab.labels));
   return level.id <= state.unlockedLevel;
 }
@@ -1287,6 +1301,7 @@ function renderPredictionPrompt() {
   const prediction = getCurrentLevel().prediction;
   const hidden = !prediction || state.prediction.skipped || state.prediction.compared;
   elements.predictionPanel.hidden = hidden;
+  elements.conditionIntro.hidden = getCurrentLevel().id !== 9;
   if (!prediction) return;
   elements.predictionQuestion.textContent = prediction.question;
   elements.predictionOptions.replaceChildren(...prediction.options.map((option) => {
@@ -1317,7 +1332,7 @@ function comparePrediction(actual) {
     const repeat = state.programCommands.find((command) => getCommandType(command) === "repeat");
     actualLabel = repeat ? String(repeat.count) : "Ingen loop";
   }
-  if (level.id === 9 && typeof actual === "boolean") actualLabel = actual ? "DÅ – hinder" : "ANNARS – fri väg";
+  if (level.id === 9 && typeof actual === "boolean") actualLabel = actual ? "DÅ-delen körs" : "ANNARS-delen körs";
   if (level.signature && actual?.predictedLabel) actualLabel = formatAICategoryTitle(actual.predictedLabel);
   if (!actualLabel) return;
   state.prediction.compared = true;
@@ -1556,7 +1571,12 @@ function renderProgram({ newCommandIndex = -1 } = {}) {
   );
 
   const level = getCurrentLevel();
-  elements.programList.parentElement.classList.toggle("is-empty", state.programCommands.length === 0);
+  const programListWrap = elements.programList.parentElement;
+  programListWrap.classList.toggle("is-empty", state.programCommands.length === 0);
+  programListWrap.classList.toggle(
+    "has-conditional",
+    state.programCommands.some((command) => ["if", "ifAI"].includes(getCommandType(command))),
+  );
   elements.emptyProgram.classList.toggle("is-hidden", state.programCommands.length > 0);
   elements.commandCount.textContent = `${authoredCount} / ${level.maxCommands}`;
   elements.commandCount.classList.toggle(
@@ -1572,22 +1592,30 @@ function renderConditionalBlock(commandBlock, index, authoredCount) {
   const conditionLabel = isAI
     ? "modellen gissar metall"
     : sensor === "packageAhead"
-      ? "paket framför roboten"
-      : "hinder framför roboten";
-  const thenResult = isAI ? "METALL" : "JA";
-  const elseResult = isAI ? "PLAST" : "NEJ";
+      ? "sensorn hittar ett paket framför roboten"
+      : "sensorn hittar ett hinder framför roboten";
+  const thenLabel = isAI
+    ? "DÅ – modellen gissar metall"
+    : sensor === "packageAhead"
+      ? "DÅ – när paketet finns framför roboten"
+      : "DÅ – när det finns ett hinder";
+  const elseLabel = isAI
+    ? "ANNARS – modellen gissar plast"
+    : sensor === "packageAhead"
+      ? "ANNARS – när inget paket finns framför roboten"
+      : "ANNARS – när vägen är fri";
   const sensorResult = state.executionState.activeCommandIndex === index && state.executionState.lastSensorResult
     ? `<span class="condition-result">${state.executionState.lastSensorResult}</span>`
     : "";
   return `
-    <div class="conditional-main">
+    <div class="conditional-main" role="group" aria-label="OM ${conditionLabel}">
       <span class="conditional-keyword">OM</span>
       <span class="condition-sensor"><span aria-hidden="true">${isAI ? "AI" : "◉"}</span>${conditionLabel}</span>
       ${sensorResult}
       <button class="remove-command" type="button" aria-label="Ta bort hela Om-blocket ${index + 1}" ${state.executionState.running ? "disabled" : ""}>×</button>
     </div>
-    ${renderConditionalBranch(commandBlock, index, "then", `DÅ – ${thenResult}`, authoredCount)}
-    ${renderConditionalBranch(commandBlock, index, "else", `ANNARS – ${elseResult}`, authoredCount)}
+    ${renderConditionalBranch(commandBlock, index, "then", thenLabel, authoredCount)}
+    ${renderConditionalBranch(commandBlock, index, "else", elseLabel, authoredCount)}
   `;
 }
 
@@ -1596,8 +1624,8 @@ function renderConditionalBranch(commandBlock, topIndex, branch, label, authored
   const allowed = getCurrentLevel().branchCommands || ["forward", "left", "right"];
   const isActiveBranch = state.executionState.activeCommandIndex === topIndex && state.executionState.activeBranch === branch;
   return `
-    <section class="condition-branch${isActiveBranch ? " is-active" : ""}" data-branch="${branch}" aria-label="${label}">
-      <strong class="branch-label">${label}</strong>
+    <section class="condition-branch${isActiveBranch ? " is-active" : ""}" data-branch="${branch}" aria-labelledby="condition-branch-${topIndex}-${branch}">
+      <h4 class="branch-label" id="condition-branch-${topIndex}-${branch}">${label}</h4>
       <div class="branch-list">
         ${branchCommands.length
           ? branchCommands.map((nested, branchIndex) => {
@@ -1608,8 +1636,9 @@ function renderConditionalBranch(commandBlock, topIndex, branch, label, authored
                 <button class="remove-branch-command" type="button" aria-label="Ta bort ${nestedCommand.label} från ${label}" ${state.executionState.running ? "disabled" : ""}>×</button>
               </span>`;
             }).join("")
-          : '<span class="repeat-empty">Ingen instruktion i grenen ännu.</span>'}
+          : '<span class="repeat-empty">Lägg en instruktion här.</span>'}
       </div>
+      <p class="branch-add-label">Lägg till i ${branch === "then" ? "DÅ" : "ANNARS"}</p>
       <div class="nested-command-palette branch-palette">
         ${allowed.map((commandId) => {
           const nestedCommand = COMMANDS[commandId];
@@ -1695,7 +1724,7 @@ function addBranchCommand(index, branch, commandId) {
   const command = state.programCommands[index];
   if (!["if", "ifAI"].includes(getCommandType(command))) return;
   if (!(getCurrentLevel().branchCommands || []).includes(commandId) || !canAddAuthoredBlocks(1)) {
-    showStatus("Programmet är fullt eller instruktionen passar inte i grenen.", "warning");
+    showStatus("Programmet är fullt eller instruktionen passar inte i DÅ- eller ANNARS-delen.", "warning");
     return;
   }
   clearExecutionHistoryForEdit();
@@ -1703,7 +1732,7 @@ function addBranchCommand(index, branch, commandId) {
   list.push(createCommandBlock(commandId));
   preserveSignatureProgram();
   renderProgram();
-  showStatus(`${COMMANDS[commandId].label} lades i ${branch === "then" ? "DÅ" : "ANNARS"}-grenen.`, "info");
+  showStatus(`${COMMANDS[commandId].label} lades i ${branch === "then" ? "DÅ" : "ANNARS"}-delen.`, "info");
 }
 
 function removeBranchCommand(index, branch, branchIndex) {
@@ -1716,7 +1745,7 @@ function removeBranchCommand(index, branch, branchIndex) {
   const [removed] = list.splice(branchIndex, 1);
   preserveSignatureProgram();
   renderProgram();
-  showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort från grenen.`, "info");
+  showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort från ${branch === "then" ? "DÅ" : "ANNARS"}-delen.`, "info");
 }
 
 function clearExecutionHistoryForEdit() {
@@ -2048,10 +2077,19 @@ async function executeConditionStep(step, runId, delay) {
   state.executionState.activeBranch = branch;
   state.executionState.lastSensorResult = step.sensor === "modelPredictsMetal"
     ? `Modellens gissning: ${formatAICategory(state.signatureState.lastPrediction.predictedLabel)} · ${branch === "then" ? "DÅ" : "ANNARS"}`
-      : `${result ? "JA" : "NEJ"} – ${step.sensor === "packageAhead" ? (result ? "paket hittat" : "inget paket") : (result ? "hinder hittat" : "vägen är fri")} · ${branch === "then" ? "DÅ" : "ANNARS"}`;
+      : step.sensor === "obstacleAhead"
+        ? result
+          ? "Sensorn hittade ett hinder. DÅ-delen körs."
+          : "Vägen är fri. ANNARS-delen körs."
+        : `${result ? "JA" : "NEJ"} – ${result ? "paket hittat" : "inget paket"} · ${branch === "then" ? "DÅ" : "ANNARS"}`;
   if (getCurrentLevel().id === 9) comparePrediction(result);
   renderProgram();
-  showStatus(`Sensorn gav information. Villkoret valde ${branch === "then" ? "DÅ" : "ANNARS"}-grenen.`, "info");
+  const conditionStatus = step.sensor === "obstacleAhead"
+    ? result
+      ? "Sensorn hittade ett hinder. DÅ-delen körs."
+      : "Vägen är fri. ANNARS-delen körs."
+    : `Sensorn gav information. ${branch === "then" ? "DÅ" : "ANNARS"}-delen körs.`;
+  showStatus(conditionStatus, "info");
   await wait(delay);
   return { type: "condition", result, branch };
 }
@@ -2664,7 +2702,7 @@ function getAIObjectsByGroup(group) {
 }
 
 function openAILab() {
-  if (!state.bestStars["8"]) {
+  if (!demoState.unlockAll && !state.bestStars["8"]) {
     showStatus("Klara Robotarmen först.", "warning");
     return;
   }
@@ -2994,7 +3032,7 @@ function renderAIConceptStrip() {
 }
 
 function renderAISortingStage() {
-  const missionUnlocked = Boolean(state.bestStars["11"] && state.aiLab.installed);
+  const missionUnlocked = demoState.unlockAll || Boolean(state.bestStars["11"] && state.aiLab.installed);
   return `<section class="ai-panel ai-installation-card" aria-labelledby="installation-title">
     <div class="camera-module-visual" aria-hidden="true"><span></span></div>
     <p class="card-kicker">3 · Använd</p>
@@ -3760,10 +3798,17 @@ function initializeApp() {
   applyBranding();
   loadProgress();
   bindEvents();
+  document.body.classList.toggle("is-demo-mode", demoState.enabled);
+  elements.demoNotice.hidden = !demoState.enabled;
   elements.screens.forEach((screen) => {
     screen.setAttribute("aria-hidden", String(screen !== elements.startScreen));
   });
   renderLevelSelection();
+  if (demoState.requestedLevel) {
+    openLevel(LEVELS.findIndex((level) => level.id === demoState.requestedLevel));
+  } else if (demoState.requestedScreen === "ai-lab") {
+    openAILab();
+  }
 }
 
 initializeApp();
@@ -3790,4 +3835,5 @@ window.__robotverkstan = Object.freeze({
   calculateAIDistance,
   createAITrainingSignature,
   openAILab,
+  demoState,
 });

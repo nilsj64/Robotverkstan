@@ -2544,6 +2544,30 @@ a:focus-visible {
   padding-top: 14px;
 }
 
+.demo-notice {
+  margin: 0 auto;
+  padding: 7px 10px;
+  border: 2px solid var(--workshop-navy);
+  border-radius: 999px;
+  background: var(--workshop-yellow);
+  box-shadow: 0 3px 0 var(--workshop-navy);
+  color: var(--workshop-navy);
+  font-size: 0.72rem;
+  font-weight: 1000;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.is-demo-mode .site-header {
+  flex-wrap: wrap;
+  padding-block: 8px;
+}
+
+.is-demo-mode .demo-notice {
+  order: 3;
+  flex-basis: 100%;
+}
+
 .progress-track {
   border: 1px solid var(--workshop-navy);
   background: #d6d7d3;
@@ -3043,6 +3067,11 @@ a:focus-visible,
   border-style: dashed;
 }
 
+.program-list-wrap.has-conditional {
+  min-height: 360px;
+  max-height: min(520px, 58vh);
+}
+
 .empty-program {
   inset: 0;
   display: flex;
@@ -3451,6 +3480,16 @@ a:focus-visible,
 .program-step.repeat-step {
   display: block;
   padding: 0;
+}
+
+.program-step.conditional-step {
+  display: block;
+  min-width: 0;
+  padding: 0;
+}
+
+.program-step.conditional-step::before {
+  display: none;
 }
 
 .program-step.repeat-step::before {
@@ -5395,12 +5434,21 @@ a:focus-visible,
   background: #dff3f0;
 }
 
+.conditional-main > * {
+  min-width: 0;
+}
+
 .conditional-keyword,
 .branch-label {
   color: var(--workshop-navy);
   font-size: 0.76rem;
   font-weight: 1000;
   letter-spacing: 0.08em;
+}
+
+.branch-label {
+  margin: 0;
+  letter-spacing: 0.03em;
 }
 
 .condition-sensor {
@@ -5444,6 +5492,10 @@ a:focus-visible,
   background: #fffdf7;
 }
 
+.condition-branch > * {
+  min-width: 0;
+}
+
 .condition-branch.is-active {
   border-color: var(--workshop-yellow-dark);
   box-shadow: 0 0 0 3px rgba(255, 199, 44, 0.24);
@@ -5456,6 +5508,43 @@ a:focus-visible,
 
 .branch-palette {
   margin-top: 2px;
+}
+
+.branch-add-label {
+  margin: 2px 0 0;
+  color: var(--workshop-navy);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.conditional-step .branch-palette {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.conditional-step .nested-add-command {
+  min-width: 0;
+  justify-content: center;
+  padding-inline: 7px;
+  text-align: center;
+}
+
+.condition-intro {
+  margin-top: 14px;
+  padding: 14px;
+  border: 2px solid var(--workshop-teal-dark);
+  border-radius: var(--radius-md);
+  background: #f2fbfa;
+  box-shadow: 0 3px 0 rgba(15, 30, 58, 0.12);
+}
+
+.condition-intro h3,
+.condition-intro p {
+  margin: 0;
+}
+
+.condition-intro p + p {
+  margin-top: 6px;
 }
 
 .signature-feedback {
@@ -5586,6 +5675,11 @@ a:focus-visible,
 .workshop-icon-level-12::before { content: "AI"; font-size: 0.7em; }
 
 @media (max-width: 600px) {
+  .program-list-wrap.has-conditional {
+    min-height: 386px;
+    max-height: min(560px, 66vh);
+  }
+
   .conditional-main {
     grid-template-columns: auto minmax(0, 1fr) 44px;
   }
