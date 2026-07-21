@@ -522,6 +522,10 @@ const DEFAULT_PROGRESS = Object.freeze({
     completed: false,
     hasSeenIntro: false,
   },
+  signatureMission: {
+    program: [],
+    updatedAt: null,
+  },
 });
 
 const state = {
@@ -562,6 +566,7 @@ const state = {
   prediction: { choice: "", skipped: false, compared: false },
   signatureState: createSignatureState(),
   signatureProgram: [],
+  signatureProgramUpdatedAt: null,
   returnToSignature: false,
   aiLab: createDefaultAILabState(),
 };
@@ -669,6 +674,11 @@ function loadProgress() {
     state.hasSeenInfo = Boolean(saved.hasSeenInfo);
     state.sensorIntro = sanitizeSensorIntro(saved.sensorIntro);
     state.aiLab = sanitizeAILab(saved.aiLab);
+    const signatureMission = sanitizeSignatureMission(
+      saved.signatureMission || { program: saved.signatureProgram },
+    );
+    state.signatureProgram = signatureMission.program;
+    state.signatureProgramUpdatedAt = signatureMission.updatedAt;
   } catch {
     applyDefaultProgress();
   }
@@ -684,6 +694,7 @@ function saveProgress() {
         hasSeenInfo: state.hasSeenInfo,
         sensorIntro: state.sensorIntro,
         aiLab: getPersistentAILabState(),
+        signatureMission: getPersistentSignatureMissionState(),
       }),
     );
   } catch {
@@ -697,6 +708,8 @@ function applyDefaultProgress() {
   state.hasSeenInfo = DEFAULT_PROGRESS.hasSeenInfo;
   state.sensorIntro = { ...DEFAULT_PROGRESS.sensorIntro };
   state.sensorIntroVisible = false;
+  state.signatureProgram = [];
+  state.signatureProgramUpdatedAt = null;
   state.aiLab = createDefaultAILabState();
 }
 
@@ -722,6 +735,65 @@ function sanitizeSensorIntro(value) {
     shown: Boolean(value.shown),
     dismissed: Boolean(value.dismissed),
     used: Boolean(value.used),
+  };
+}
+
+function sanitizeSignatureMission(value) {
+  const program = sanitizeSignatureProgram(value?.program);
+  const parsedUpdatedAt = typeof value?.updatedAt === "string" ? Date.parse(value.updatedAt) : NaN;
+  return {
+    program,
+    updatedAt: program.length && Number.isFinite(parsedUpdatedAt)
+      ? new Date(parsedUpdatedAt).toISOString()
+      : null,
+  };
+}
+
+function sanitizeSignatureProgram(value) {
+  const level = LEVELS.find((candidate) => candidate.signature);
+  if (!level || !Array.isArray(value) || value.length > level.maxCommands) return [];
+  const topLevelCommands = new Set(level.commands);
+  const branchCommands = new Set(level.branchCommands || []);
+  let valid = true;
+
+  const cleanBranch = (commands) => {
+    if (!Array.isArray(commands) || commands.length > level.maxCommands) {
+      valid = false;
+      return [];
+    }
+    return commands.map((command) => {
+      const type = getCommandType(command);
+      if (!branchCommands.has(type)) valid = false;
+      return { type };
+    });
+  };
+
+  const program = value.map((command) => {
+    const type = getCommandType(command);
+    if (!topLevelCommands.has(type)) {
+      valid = false;
+      return { type: "" };
+    }
+    if (type !== "ifAI") return { type };
+    if (!command || typeof command !== "object" || Array.isArray(command)) {
+      valid = false;
+      return { type: "ifAI", sensor: "modelPredictsMetal", thenCommands: [], elseCommands: [] };
+    }
+    return {
+      type: "ifAI",
+      sensor: "modelPredictsMetal",
+      thenCommands: cleanBranch(command.thenCommands),
+      elseCommands: cleanBranch(command.elseCommands),
+    };
+  });
+
+  return valid && countAuthoredBlocks(program) <= level.maxCommands ? program : [];
+}
+
+function getPersistentSignatureMissionState() {
+  return {
+    program: sanitizeSignatureProgram(state.signatureProgram),
+    updatedAt: state.signatureProgramUpdatedAt,
   };
 }
 
@@ -1021,9 +1093,10 @@ function getSignatureLockText() {
 }
 
 function preserveSignatureProgram() {
-  if (getCurrentLevel()?.signature && state.programCommands.length) {
-    state.signatureProgram = structuredClone(state.programCommands);
-  }
+  if (!getCurrentLevel()?.signature) return;
+  state.signatureProgram = sanitizeSignatureProgram(state.programCommands);
+  state.signatureProgramUpdatedAt = new Date().toISOString();
+  saveProgress();
 }
 
 // ----- Level and board rendering -------------------------------------------
@@ -1285,6 +1358,17 @@ function renderSignatureFeedback() {
     return;
   }
   elements.signatureFeedback.hidden = false;
+  const isFinalModelFailure = failure.category === "ai_attempt_incomplete"
+    || (failure.category === "ai_prediction_wrong"
+      && state.signatureState.objectIndex >= getAIObjectsByGroup("sorting").length - 1);
+  if (isFinalModelFailure) {
+    const incorrectResults = state.signatureState.sortedResults.filter((result) => !result.correct);
+    elements.signatureFeedback.innerHTML = `<h3>Försöket är klart</h3><p>${incorrectResults.length} av 3 föremål sorterades fel eftersom modellen gissade fel.</p><ul>${incorrectResults.map((result) => {
+      const item = getAIObject(result.objectId);
+      return `<li><strong>${item.name}:</strong> modellen gissade ${formatAICategory(result.predictedLabel)}, rätt svar var ${formatAICategory(result.trueCategory)}.</li>`;
+    }).join("")}</ul><div class="signature-actions"><button class="secondary-button" type="button" data-signature-action="improve">Förbättra träningen</button><button class="secondary-button" type="button" data-signature-action="trace">Se spåret</button></div>`;
+    return;
+  }
   if (failure.category === "ai_prediction_wrong") {
     const result = state.signatureState.sortedResults.at(-1);
     const item = getAIObject(result.objectId);
@@ -1303,12 +1387,18 @@ function improveTrainingFromMission() {
   showAIStatus("Du kom tillbaka eftersom modellen gissade fel. Förbättra exemplen, testa och installera igen.", "warning");
 }
 
-function continueSignatureAttempt() {
+async function continueSignatureAttempt() {
   if (!getCurrentLevel().signature || !state.executionState.failure || state.executionState.running) return;
   if (state.signatureState.objectIndex >= getAIObjectsByGroup("sorting").length - 1) {
     showStatus("Försöket är klart, men minst ett föremål hamnade fel. Förbättra träningen och försök igen.", "warning");
     return;
   }
+  const compiled = compileProgram(state.programCommands);
+  if (!compiled.ok) {
+    showStatus(compiled.message, "warning");
+    return;
+  }
+  state.executionState.running = true;
   state.signatureState.objectIndex += 1;
   state.signatureState.currentObjectId = getAIObjectsByGroup("sorting")[state.signatureState.objectIndex].id;
   state.signatureState.lastPrediction = null;
@@ -1316,15 +1406,24 @@ function continueSignatureAttempt() {
   state.packageState = createPackageState(getCurrentLevel());
   state.robot = { ...getCurrentLevel().start };
   state.executionState.failure = null;
-  state.executionState.plan = compileProgram(state.programCommands).steps;
+  state.executionState.plan = compiled.steps;
   state.executionState.pointer = 0;
   state.executionState.runId += 1;
+  const runId = state.executionState.runId;
+  state.executionState.activeCommandIndex = -1;
+  state.executionState.activeNestedIndex = -1;
+  state.executionState.activeBranch = "";
+  state.executionState.activeBranchIndex = -1;
+  state.executionState.lastSensorResult = null;
   renderBoard();
   updateObjectiveStatus();
   renderProgram();
   renderSignatureFeedback();
   renderTracePanel();
-  showStatus("Nästa föremål är framme. Samma program är redo igen.", "info");
+  updateControls();
+  showStatus("Nästa föremål är framme. Samma program körs igen.", "info");
+  await runExecutionLoop(runId);
+  updateControls();
 }
 
 // ----- Program editing ------------------------------------------------------
@@ -1531,6 +1630,7 @@ function addCommand(commandId) {
   }
   clearExecutionHistoryForEdit();
   state.programCommands.push(createCommandBlock(commandId));
+  preserveSignatureProgram();
   renderProgram({ newCommandIndex: state.programCommands.length - 1 });
   showStatus(`Instruktionen ${COMMANDS[commandId].label} lades till.`, "info");
   elements.programList.lastElementChild?.scrollIntoView({ block: "nearest" });
@@ -1540,6 +1640,7 @@ function removeCommand(index) {
   if (state.executionState.running || index < 0 || index >= state.programCommands.length) return;
   clearExecutionHistoryForEdit();
   const [removed] = state.programCommands.splice(index, 1);
+  preserveSignatureProgram();
   renderProgram();
   showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort.`, "info");
 }
@@ -1584,6 +1685,7 @@ function clearProgram() {
   if (state.executionState.running || state.programCommands.length === 0) return;
   clearExecutionHistoryForEdit();
   state.programCommands = [];
+  preserveSignatureProgram();
   renderProgram();
   showStatus("Programmet är tomt. Bygg ett nytt!", "info");
 }
@@ -1599,6 +1701,7 @@ function addBranchCommand(index, branch, commandId) {
   clearExecutionHistoryForEdit();
   const list = branch === "then" ? command.thenCommands : command.elseCommands;
   list.push(createCommandBlock(commandId));
+  preserveSignatureProgram();
   renderProgram();
   showStatus(`${COMMANDS[commandId].label} lades i ${branch === "then" ? "DÅ" : "ANNARS"}-grenen.`, "info");
 }
@@ -1611,6 +1714,7 @@ function removeBranchCommand(index, branch, branchIndex) {
   if (branchIndex < 0 || branchIndex >= list.length) return;
   clearExecutionHistoryForEdit();
   const [removed] = list.splice(branchIndex, 1);
+  preserveSignatureProgram();
   renderProgram();
   showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort från grenen.`, "info");
 }
@@ -1774,7 +1878,11 @@ async function handleExecutionPlanEnd(runId) {
       showStatus(`Nästa föremål är framme. Samma program körs igen (${state.signatureState.objectIndex + 1} av 3).`, "info");
       return true;
     }
-    finishSuccessfulRun();
+    if (state.signatureState.sortedResults.some((result) => !result.correct)) {
+      finishFailedRun("ai_attempt_incomplete", "Försöket är klart, men modellen gissade fel på minst ett föremål.");
+    } else {
+      finishSuccessfulRun();
+    }
     return false;
   }
   const category = level.package && !state.packageState.delivered
