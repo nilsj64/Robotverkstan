@@ -7,7 +7,7 @@ const BRAND = {
   // Keep worldName as "Robotverkstan" if the workshop remains part of the game world.
   productName: "Robotverkstan",
   worldName: "Robotverkstan",
-  tagline: "Programmera roboten, lös åtta kluriga uppdrag och upptäck hur teknik fungerar.",
+  tagline: "Programmera roboten, felsök steg för steg och upptäck hur regler, sensorer och AI fungerar.",
   shortDescription:
     "Ett lekfullt spel där barn lär sig programmering, robotik och AI genom att bygga, testa och förbättra en robot.",
 };
@@ -17,8 +17,11 @@ const COMMANDS = {
   left: { label: "Sväng vänster", symbol: "↶", shortLabel: "Vänster" },
   right: { label: "Sväng höger", symbol: "↷", shortLabel: "Höger" },
   repeat: { label: "Upprepa", symbol: "↻", shortLabel: "Upprepa" },
+  if: { label: "Om sensorn…", symbol: "◇", shortLabel: "Om" },
   pickup: { label: "Plocka upp", symbol: "⌐", shortLabel: "Plocka upp" },
   drop: { label: "Lämna", symbol: "▣", shortLabel: "Lämna" },
+  aiScan: { label: "Skanna med AI-kameran", symbol: "◎", shortLabel: "Skanna" },
+  ifAI: { label: "Om modellen gissar metall", symbol: "AI", shortLabel: "Om modellens gissning" },
   sensorRight: {
     label: "Om hinder: sväng höger",
     symbol: "◉",
@@ -200,7 +203,132 @@ const LEVELS = [
       "Du styrde robotens rörelser och robotarm med ett program. Robotarmar och motorer kallas aktuatorer – de får roboten att göra saker i världen. Det här är programmering och robotik. AI används när datorer till exempel lär sig mönster från många exempel.",
     learning: "Aktuatorer, som motorer och robotarmar, får roboten att göra saker i världen.",
   },
+  {
+    id: 9,
+    title: "Om det är stopp",
+    cardText: "Låt en regel reagera på sensorn.",
+    icon: "condition",
+    color: "#168a8e",
+    chapter: "Roboten reagerar",
+    mission: "Vägen är blockerad. Låt sensorn ge information och Om-blocket välja svängen.",
+    size: 5,
+    start: { x: 0, y: 2, direction: "east" },
+    goal: { x: 2, y: 0 },
+    obstacles: [{ x: 2, y: 2 }],
+    energy: [],
+    commands: ["forward", "left", "right", "if"],
+    branchCommands: ["forward", "left", "right"],
+    conditionSensor: "obstacleAhead",
+    maxCommands: 10,
+    targetCommands: 8,
+    learning: "Sensorn gav information. Om-blocket valde vilken instruktion som skulle köras.",
+  },
+  {
+    id: 10,
+    title: "Roboten väljer väg",
+    cardText: "Samma regel kan ge olika svar.",
+    icon: "condition",
+    color: "#207a78",
+    chapter: "Roboten reagerar",
+    mission: "Använd samma sorts villkor flera gånger. Ibland är det stopp och ibland är vägen fri.",
+    size: 5,
+    start: { x: 0, y: 4, direction: "north" },
+    goal: { x: 1, y: 2 },
+    obstacles: [{ x: 0, y: 2 }, { x: 2, y: 3 }],
+    energy: [],
+    commands: ["forward", "left", "right", "if"],
+    branchCommands: ["forward", "left", "right"],
+    conditionSensor: "obstacleAhead",
+    maxCommands: 14,
+    targetCommands: 11,
+    learning: "Samma villkor kan välja olika grenar när sensorn får ny information.",
+  },
+  {
+    id: 11,
+    title: "Paketvakten",
+    cardText: "Koppla paketsensorn till robotarmen.",
+    icon: "package-sensor",
+    color: "#9b6a2f",
+    chapter: "Roboten reagerar",
+    mission: "Kontrollera om paketet är framför roboten, plocka upp det och leverera det.",
+    size: 5,
+    start: { x: 0, y: 4, direction: "north" },
+    goal: { x: 3, y: 2 },
+    obstacles: [{ x: 2, y: 1 }],
+    energy: [],
+    package: { x: 0, y: 2 },
+    delivery: { x: 4, y: 2 },
+    commands: ["forward", "left", "right", "repeat", "if", "pickup", "drop"],
+    repeatCommands: ["forward", "left", "right"],
+    branchCommands: ["forward", "left", "right", "pickup"],
+    conditionSensor: "packageAhead",
+    maxCommands: 12,
+    targetCommands: 11,
+    learning: "Sensorn upptäckte paketet. Programmet bestämde när robotarmen skulle plocka upp det.",
+  },
+  {
+    id: 12,
+    title: "Sorteringslinjen",
+    cardText: "Kombinera programmet med din tränade modell.",
+    icon: "ai-mission",
+    color: "#1e3a5f",
+    chapter: "AI-uppdraget",
+    signature: true,
+    mission: "Samma program sorterar tre föremål. Modellen gissar material och dina regler väljer station.",
+    size: 6,
+    start: { x: 2, y: 5, direction: "north" },
+    goal: { x: 2, y: 5 },
+    obstacles: [{ x: 0, y: 3 }, { x: 5, y: 3 }],
+    energy: [],
+    package: { x: 2, y: 3 },
+    stations: { metal: { x: 1, y: 4 }, plastic: { x: 3, y: 4 } },
+    commands: ["forward", "left", "right", "pickup", "drop", "aiScan", "ifAI"],
+    branchCommands: ["forward", "left", "right", "drop"],
+    maxCommands: 18,
+    targetCommands: 16,
+    learning: "Du skrev reglerna som styrde roboten och tränade modellen som gjorde gissningarna. Båda delarna behövde fungera.",
+  },
 ];
+
+const LEVEL_HINTS = {
+  1: ["Hur många rutor är det till laddstationen?", "Varje Framåt flyttar roboten en ruta.", "Prova två Framåt-instruktioner i ordning."],
+  2: ["Roboten behöver både köra och byta riktning.", "Titta på pilen som visar vart roboten tittar.", "Kör två steg upp, sväng höger och fortsätt mot målet."],
+  3: ["En vägg stoppar Framåt.", "Planera svängen innan roboten når verktygslådan.", "Gör en omväg ovanför hindret och sväng tillbaka mot målet."],
+  4: ["Energicellen måste hämtas före målet.", "Dela rutten i två delar: energi, sedan mål.", "Kör upp till energin, sväng mot målet och kontrollera riktningen efter varje sväng."],
+  5: ["Sensorn tittar på rutan framför roboten.", "Kör fram tills hindret är framför roboten.", "Lägg sensorinstruktionen efter två Framåt och fortsätt sedan mot målet."],
+  6: ["Uppdraget kräver både energi, sensor och mål.", "Följ programmet tills sensorn står framför den övre väggen.", "Hämta energin först och låt sensorn välja svängen vid hindret."],
+  7: ["Vilken instruktion behöver roboten göra flera gånger?", "Prova att lägga Framåt inuti Upprepa-blocket.", "Loopen behöver fyra varv för att nå målet."],
+  8: ["Paketet måste hämtas innan roboten kör genom det.", "Ställ roboten bredvid paketet och använd Plocka upp.", "Leveransplatsen måste vara framför roboten när Lämna körs."],
+  9: ["Sensorn ger information. Villkoret väljer vad programmet gör.", "Lägg svängen i DÅ-grenen när sensorn hittar hindret.", "Kör fram till väggen, använd Om-blocket och fortsätt sedan mot målet."],
+  10: ["Samma sensorfråga kan få olika svar på olika platser.", "Följ spåret och leta efter både JA och NEJ.", "Använd tre Om-block: två vid hinder och ett där vägen är fri."],
+  11: ["Paketsensorn hittar paketet men robotarmen måste plocka.", "Lägg Plocka upp i DÅ-grenen.", "Efter hämtningen kan en loop köra längs den raka leveransvägen."],
+  12: ["Kameran måste skanna innan AI-villkoret kan läsa gissningen.", "DÅ-grenen går till metallstationen och ANNARS till plaststationen.", "Varje gren behöver lämna föremålet och återvända till den markerade säkra rutan."],
+};
+
+const MASTERY_CRITERIA = {
+  1: ["Nå laddstationen", "Klara körningen utan kollision", "Använd högst 2 instruktioner"],
+  2: ["Nå laddstationen", "Klara körningen utan kollision", "Använd högst 5 instruktioner"],
+  3: ["Nå laddstationen", "Klara körningen utan kollision", "Felsök vägen runt hindret"],
+  4: ["Nå laddstationen", "Samla all energi", "Använd högst 8 instruktioner"],
+  5: ["Nå laddstationen", "Använd sensorn", "Använd högst 4 instruktioner"],
+  6: ["Klara hela uppdraget", "Använd sensorn", "Samla energi utan kollision"],
+  7: ["Nå laddstationen", "Använd en loop", "Använd högst 2 byggda block"],
+  8: ["Leverera paketet", "Undvik ogiltiga armkommandon", "Använd högst 12 byggda block"],
+  9: ["Nå laddstationen", "Använd ett villkor", "Låt sensorn välja rätt gren"],
+  10: ["Nå laddstationen", "Få både JA och NEJ", "Använd högst 11 byggda block"],
+  11: ["Leverera paketet", "Använd paketsensorns villkor", "Undvik ogiltiga armkommandon"],
+  12: ["Sortera alla tre föremål", "Slutför utan programfel", "Använd AI-villkoret och högst 16 block"],
+};
+
+LEVELS.forEach((level) => {
+  level.hints = LEVEL_HINTS[level.id];
+  level.mastery = MASTERY_CRITERIA[level.id];
+});
+
+LEVELS[0].prediction = { question: "Var tror du att roboten stannar?", options: ["Före målet", "På målet", "Efter målet"] };
+LEVELS[6].prediction = { question: "Hur många Framåt tror du att loopen kör?", options: ["2", "3", "4"] };
+LEVELS[8].prediction = { question: "Vilken gren körs vid väggen?", options: ["DÅ – hinder", "ANNARS – fri väg"] };
+LEVELS[11].prediction = { question: "Vilken station väljer modellen för första föremålet?", options: ["Metall", "Plast"] };
 
 const AI_FEATURE_KEYS = ["shine", "transparency", "roundness", "blueAmount", "roughness"];
 const AI_OBJECTS = [
@@ -405,10 +533,19 @@ const state = {
   executionState: {
     running: false,
     runId: 0,
+    traceMode: false,
+    plan: [],
+    pointer: 0,
+    history: [],
+    failure: null,
     activeCommandIndex: -1,
     activeNestedIndex: -1,
+    activeBranch: "",
+    activeBranchIndex: -1,
     repeatIteration: 0,
     repeatTotal: 0,
+    lastSensorResult: null,
+    metrics: createAttemptMetrics(),
   },
   packageState: createEmptyPackageState(),
   unlockedLevel: 1,
@@ -421,6 +558,11 @@ const state = {
   },
   sensorIntroVisible: false,
   completionShown: false,
+  hintLevel: 0,
+  prediction: { choice: "", skipped: false, compared: false },
+  signatureState: createSignatureState(),
+  signatureProgram: [],
+  returnToSignature: false,
   aiLab: createDefaultAILabState(),
 };
 
@@ -465,11 +607,34 @@ const elements = {
   emptyProgram: document.querySelector("#empty-program"),
   commandCount: document.querySelector("#command-count"),
   commandPalette: document.querySelector("#command-palette"),
+  masteryPanel: document.querySelector("#mastery-panel"),
+  masteryToggle: document.querySelector("#mastery-toggle"),
+  masteryCriteria: document.querySelector("#mastery-criteria"),
+  predictionPanel: document.querySelector("#prediction-panel"),
+  predictionQuestion: document.querySelector("#prediction-question"),
+  predictionOptions: document.querySelector("#prediction-options"),
+  predictionSkip: document.querySelector("#prediction-skip"),
+  predictionResult: document.querySelector("#prediction-result"),
   sensorTip: document.querySelector("#sensor-tip"),
   sensorTipDismiss: document.querySelector("#sensor-tip-dismiss"),
   clearProgramButton: document.querySelector("#clear-program-button"),
   resetLevelButton: document.querySelector("#reset-level-button"),
   runProgramButton: document.querySelector("#run-program-button"),
+  traceStartButton: document.querySelector("#trace-start-button"),
+  tracePanel: document.querySelector("#trace-panel"),
+  tracePosition: document.querySelector("#trace-position"),
+  traceDescription: document.querySelector("#trace-description"),
+  traceNextButton: document.querySelector("#trace-next-button"),
+  traceRunButton: document.querySelector("#trace-run-button"),
+  traceRewindButton: document.querySelector("#trace-rewind-button"),
+  traceExitButton: document.querySelector("#trace-exit-button"),
+  hintButton: document.querySelector("#hint-button"),
+  hintPanel: document.querySelector("#hint-panel"),
+  hintTitle: document.querySelector("#hint-title"),
+  hintText: document.querySelector("#hint-text"),
+  nextHintButton: document.querySelector("#next-hint-button"),
+  hintCloseButton: document.querySelector("#hint-close-button"),
+  signatureFeedback: document.querySelector("#signature-feedback"),
   statusMessage: document.querySelector("#status-message"),
   learnDialog: document.querySelector("#learn-dialog"),
   closeLearnButton: document.querySelector("#close-learn-button"),
@@ -479,6 +644,7 @@ const elements = {
   completionStars: document.querySelector("#completion-stars"),
   completionMessage: document.querySelector("#completion-message"),
   completionLearning: document.querySelector("#completion-learning"),
+  completionCriteria: document.querySelector("#completion-criteria"),
   nextLevelButton: document.querySelector("#next-level-button"),
   retryLevelButton: document.querySelector("#retry-level-button"),
   completionLevelsButton: document.querySelector("#completion-levels-button"),
@@ -494,8 +660,9 @@ function loadProgress() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved || typeof saved !== "object") return;
     state.bestStars = sanitizeStars(saved.bestStars);
-    const migratedUnlock =
-      state.bestStars["6"] && !state.bestStars["7"]
+    const migratedUnlock = state.bestStars["8"]
+      ? Math.max(Number(saved.unlockedLevel) || 1, 9)
+      : state.bestStars["6"] && !state.bestStars["7"]
         ? Math.max(Number(saved.unlockedLevel) || 1, 7)
         : saved.unlockedLevel;
     state.unlockedLevel = clampNumber(migratedUnlock, 1, LEVELS.length, 1);
@@ -558,6 +725,32 @@ function sanitizeSensorIntro(value) {
   };
 }
 
+function createAttemptMetrics() {
+  return {
+    criticalErrors: 0,
+    invalidArmActions: 0,
+    sensorsUsed: 0,
+    conditionsUsed: 0,
+    trueBranches: 0,
+    falseBranches: 0,
+    repeatUsed: false,
+    aiConditionalUsed: false,
+    modelErrors: 0,
+    programErrors: 0,
+  };
+}
+
+function createSignatureState() {
+  return {
+    objectIndex: 0,
+    currentObjectId: "s1",
+    lastPrediction: null,
+    sortedResults: [],
+    cycleDelivered: false,
+    pendingModelError: false,
+  };
+}
+
 function createDefaultAILabState() {
   return {
     labels: {},
@@ -616,12 +809,13 @@ function sanitizeAILab(value) {
       && result.objectId === testObjects[index].id
       && ["metal", "plastic"].includes(result.predictedLabel)
       && typeof result.correct === "boolean"
-      && ["Osäker", "Ganska säker", "Säker"].includes(result.confidenceBand));
+      && ["Osäker", "Ganska säker", "Säker", "Osäker gissning", "Ganska säker gissning", "Stark gissning"].includes(result.confidenceBand));
   if (clean.trained && (savedTestComplete || value.installed || value.completed)) {
     clean.testResults = evaluateAIModel(clean.labels);
     clean.testIndex = clean.testResults.length;
   }
   clean.installed = Boolean(value.installed) && clean.trained && clean.testResults.length === 4 && (!savedInstalledSignature || savedInstalledSignature === currentSignature);
+  if (clean.installed && !clean.installedSignature) clean.installedSignature = currentSignature;
   clean.hasSeenIntro = Boolean(value.hasSeenIntro);
   const sortingCount = clampNumber(value.sortingIndex, 0, getAIObjectsByGroup("sorting").length, 0);
   clean.sortingIndex = clean.installed ? sortingCount : 0;
@@ -638,7 +832,7 @@ function sanitizeAILab(value) {
         };
       });
   }
-  clean.completed = Boolean(value.completed) && clean.installed && clean.sortingResults.length === getAIObjectsByGroup("sorting").length && clean.sortingResults.every((result) => result.correct);
+  clean.completed = Boolean(value.completed) && clean.installed;
   clean.stage = clean.completed ? "complete" : clean.installed ? "sorting" : clean.trained ? "testing" : "training";
   return clean;
 }
@@ -680,6 +874,7 @@ function applyBranding() {
 // ----- Navigation and screens ----------------------------------------------
 
 function showScreen(screenName) {
+  preserveSignatureProgram();
   cancelExecution();
   cancelAILabProcess();
   closeCompletionDialog();
@@ -697,18 +892,25 @@ function showScreen(screenName) {
 }
 
 function openLevel(levelIndex) {
-  if (levelIndex + 1 > state.unlockedLevel) {
-    showStatus("Den nivån är låst. Klara nivån före först.", "warning");
+  const level = LEVELS[levelIndex];
+  if (!level || !isLevelUnlocked(level)) {
+    showStatus(
+      level?.signature
+        ? "Klara Paketvakten och installera en giltig AI-modell först."
+        : "Den nivån är låst. Klara nivån före först.",
+      "warning",
+    );
     return false;
   }
   state.currentLevelIndex = levelIndex;
+  if (level.signature) state.programCommands = structuredClone(state.signatureProgram);
   state.currentScreen = "game";
   elements.screens.forEach((screen) => {
     const isGame = screen === elements.gameScreen;
     screen.classList.toggle("is-active", isGame);
     screen.setAttribute("aria-hidden", String(!isGame));
   });
-  initializeLevel();
+  initializeLevel({ keepProgram: Boolean(level.signature && state.signatureProgram.length) });
   window.scrollTo({ top: 0, behavior: "auto" });
   return true;
 }
@@ -741,7 +943,7 @@ function renderLevelSelection() {
         cards.push(heading);
         previousChapter = chapter;
       }
-      const isUnlocked = level.id <= state.unlockedLevel;
+      const isUnlocked = isLevelUnlocked(level);
       const stars = state.bestStars[level.id] || 0;
       const card = document.createElement("button");
       card.type = "button";
@@ -753,7 +955,9 @@ function renderLevelSelection() {
         "aria-label",
         isUnlocked
           ? `Nivå ${level.id}: ${level.title}. ${stars ? `${stars} stjärnor.` : "Inte klarad."}`
-          : `Nivå ${level.id}: ${level.title}. Låst.`,
+          : level.signature
+            ? `Sorteringslinjen är låst. ${getSignatureLockText()}`
+            : `Nivå ${level.id}: ${level.title}. Låst.`,
       );
       card.innerHTML = `
         <span class="level-card-top">
@@ -763,7 +967,7 @@ function renderLevelSelection() {
         <h2>${level.title}</h2>
         <p>${level.cardText}</p>
         <span class="level-stars" aria-hidden="true">${renderStarsHtml(stars)}</span>
-        ${isUnlocked ? '<span class="level-card-action" aria-hidden="true">Öppna <i>→</i></span>' : ""}
+        ${isUnlocked ? '<span class="level-card-action" aria-hidden="true">Öppna <i>→</i></span>' : level.signature ? `<span class="level-lock-reason">${getSignatureLockText()}</span>` : ""}
       `;
       cards.push(card);
     });
@@ -777,6 +981,8 @@ function renderLevelSelection() {
     ? "Låst"
     : state.aiLab.completed
       ? "Kapitel klart"
+      : state.aiLab.installed
+        ? "Modell installerad"
       : state.aiLab.trained
         ? "Modell tränad"
         : "Redo att träna";
@@ -802,6 +1008,24 @@ function renderLevelSelection() {
   elements.levelGrid.replaceChildren(...cards);
 }
 
+function isLevelUnlocked(level) {
+  if (level.signature) return Boolean(state.bestStars["11"] && state.aiLab.installed && state.aiLab.installedSignature === createAITrainingSignature(state.aiLab.labels));
+  return level.id <= state.unlockedLevel;
+}
+
+function getSignatureLockText() {
+  const requirements = [];
+  if (!state.bestStars["11"]) requirements.push("Klara Paketvakten");
+  if (!state.aiLab.installed) requirements.push("Träna och installera AI-kameran");
+  return requirements.join(" · ") || "Redo";
+}
+
+function preserveSignatureProgram() {
+  if (getCurrentLevel()?.signature && state.programCommands.length) {
+    state.signatureProgram = structuredClone(state.programCommands);
+  }
+}
+
 // ----- Level and board rendering -------------------------------------------
 
 function initializeLevel({ keepProgram = false } = {}) {
@@ -810,18 +1034,29 @@ function initializeLevel({ keepProgram = false } = {}) {
   state.robot = { ...level.start };
   state.collectedItems = new Set();
   state.packageState = createPackageState(level);
+  state.signatureState = createSignatureState();
   if (!keepProgram) state.programCommands = [];
   state.completionShown = false;
+  state.hintLevel = 0;
+  state.prediction = { choice: "", skipped: false, compared: false };
+  state.executionState.plan = [];
+  state.executionState.pointer = 0;
+  state.executionState.history = [];
+  state.executionState.traceMode = false;
+  state.executionState.failure = null;
+  state.executionState.metrics = createAttemptMetrics();
   state.executionState.activeCommandIndex = -1;
   state.executionState.activeNestedIndex = -1;
+  state.executionState.activeBranch = "";
+  state.executionState.activeBranchIndex = -1;
   state.executionState.repeatIteration = 0;
   state.executionState.repeatTotal = 0;
 
   elements.gameTitle.textContent = level.title;
   elements.missionNumber.textContent = String(level.id).padStart(2, "0");
   elements.missionText.textContent = level.mission;
-  elements.levelProgressText.textContent = `Nivå ${level.id} av ${LEVELS.length}`;
-  elements.levelProgressFill.style.width = `${(level.id / LEVELS.length) * 100}%`;
+  elements.levelProgressText.textContent = level.signature ? "AI-uppdraget" : `Nivå ${level.id} av 11`;
+  elements.levelProgressFill.style.width = `${(Math.min(level.id, 11) / 11) * 100}%`;
   elements.board.style.setProperty("--grid-size", level.size);
   elements.board.setAttribute(
     "aria-label",
@@ -829,15 +1064,21 @@ function initializeLevel({ keepProgram = false } = {}) {
   );
   elements.energyLegend.hidden = level.energy.length === 0;
   elements.packageLegend.hidden = !level.package;
-  elements.deliveryLegend.hidden = !level.delivery;
+  elements.deliveryLegend.hidden = !level.delivery && !level.stations;
+  elements.deliveryLegend.lastChild.textContent = level.stations ? "Sorteringsstationer" : "Leverans";
 
   renderBoard();
   renderCommandPalette();
   renderProgram();
+  renderMasteryCriteria();
+  renderPredictionPrompt();
+  renderHintPanel();
+  renderTracePanel();
+  renderSignatureFeedback();
   updateObjectiveStatus();
   updateControls();
   updateSensorTip();
-  showStatus("Bygg ett program och tryck på Kör!", "info");
+  showStatus(level.signature ? "Bygg en rutin som körs för alla tre föremål." : "Bygg ett program och tryck på Kör!", "info");
 }
 
 function renderBoard() {
@@ -850,16 +1091,18 @@ function renderBoard() {
       const isGoal = samePosition({ x, y }, level.goal);
       const isObstacle = hasPosition(level.obstacles, x, y);
       const isDelivery = samePosition({ x, y }, level.delivery || { x: -1, y: -1 });
+      const isMetalStation = samePosition({ x, y }, level.stations?.metal || { x: -1, y: -1 });
+      const isPlasticStation = samePosition({ x, y }, level.stations?.plastic || { x: -1, y: -1 });
       const hasPackage = isPackageAt(x, y);
-      const hasDeliveredPackage = Boolean(level.delivery && state.packageState.delivered && isDelivery);
+      const hasDeliveredPackage = Boolean(state.packageState.delivered && samePosition(state.packageState.position || { x: -1, y: -1 }, { x, y }));
       const energyIndex = level.energy.findIndex((item) => item.x === x && item.y === y);
       const hasEnergy = energyIndex >= 0 && !state.collectedItems.has(energyIndex);
 
-      cell.className = `grid-cell${isGoal ? " is-goal" : ""}${isDelivery ? " is-delivery" : ""}`;
+      cell.className = `grid-cell${isGoal ? " is-goal" : ""}${isDelivery ? " is-delivery" : ""}${isMetalStation ? " is-metal-station" : ""}${isPlasticStation ? " is-plastic-station" : ""}`;
       cell.setAttribute("role", "gridcell");
       cell.setAttribute(
         "aria-label",
-        describeCell(x, y, { isGoal, isObstacle, hasEnergy, isDelivery, hasPackage, hasDeliveredPackage }),
+        describeCell(x, y, { isGoal, isObstacle, hasEnergy, isDelivery, isMetalStation, isPlasticStation, hasPackage, hasDeliveredPackage }),
       );
       cell.dataset.x = String(x);
       cell.dataset.y = String(y);
@@ -881,7 +1124,7 @@ function renderBoard() {
       if (hasPackage || hasDeliveredPackage) {
         const packageElement = document.createElement("span");
         packageElement.className = `package-object${hasDeliveredPackage ? " is-delivered" : ""}`;
-        packageElement.textContent = "▣";
+        packageElement.textContent = level.signature ? "◆" : "▣";
         packageElement.setAttribute("aria-hidden", "true");
         cell.append(packageElement);
       }
@@ -906,6 +1149,8 @@ function describeCell(x, y, contents) {
   if (contents.isObstacle) parts.push("hinder");
   if (contents.hasEnergy) parts.push("energicell");
   if (contents.isDelivery) parts.push("leveransplats");
+  if (contents.isMetalStation) parts.push("metallstation");
+  if (contents.isPlasticStation) parts.push("plaststation");
   if (contents.hasPackage) parts.push("paket");
   if (contents.hasDeliveredPackage) parts.push("levererat paket");
   if (x === state.robot.x && y === state.robot.y) parts.push("robotens startruta");
@@ -930,6 +1175,14 @@ function updateRobotVisual() {
 
 function updateObjectiveStatus() {
   const level = getCurrentLevel();
+  if (level.signature) {
+    const total = getAIObjectsByGroup("sorting").length;
+    const guess = state.signatureState.lastPrediction
+      ? ` · Modellen gissar: ${formatAICategory(state.signatureState.lastPrediction.predictedLabel)}`
+      : "";
+    elements.objectiveStatus.textContent = `Sorterade: ${state.signatureState.sortedResults.length} / ${total}${guess}`;
+    return;
+  }
   if (level.package) {
     const armText = state.packageState.carrying ? "Robotarm: håller paket" : "Robotarm: tom";
     const packageText = state.packageState.delivered ? "Paket: levererat" : "Paket: väntar";
@@ -943,6 +1196,135 @@ function updateObjectiveStatus() {
   const remaining = level.energy.length - state.collectedItems.size;
   elements.objectiveStatus.textContent =
     remaining > 0 ? `Energi kvar: ${remaining} ⚡` : "Energi klar! Kör till målet ★";
+}
+
+function renderMasteryCriteria() {
+  const level = getCurrentLevel();
+  elements.masteryCriteria.innerHTML = level.mastery.map((criterion, index) => `<li><span aria-hidden="true">☆</span><span>${index + 1}. ${criterion}</span></li>`).join("");
+}
+
+function toggleMasteryCriteria() {
+  const expanded = elements.masteryToggle.getAttribute("aria-expanded") === "true";
+  elements.masteryToggle.setAttribute("aria-expanded", String(!expanded));
+  elements.masteryToggle.textContent = expanded ? "Visa" : "Dölj";
+  elements.masteryCriteria.hidden = expanded;
+}
+
+function renderPredictionPrompt() {
+  const prediction = getCurrentLevel().prediction;
+  const hidden = !prediction || state.prediction.skipped || state.prediction.compared;
+  elements.predictionPanel.hidden = hidden;
+  if (!prediction) return;
+  elements.predictionQuestion.textContent = prediction.question;
+  elements.predictionOptions.replaceChildren(...prediction.options.map((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `prediction-option${state.prediction.choice === option ? " is-selected" : ""}`;
+    button.dataset.prediction = option;
+    button.setAttribute("aria-pressed", String(state.prediction.choice === option));
+    button.textContent = option;
+    return button;
+  }));
+  elements.predictionResult.textContent = state.prediction.choice ? `Du gissar: ${state.prediction.choice}. Nu testar vi.` : "";
+}
+
+function choosePrediction(choice) {
+  const options = getCurrentLevel().prediction?.options || [];
+  if (!options.includes(choice) || state.executionState.running) return;
+  state.prediction.choice = choice;
+  renderPredictionPrompt();
+}
+
+function comparePrediction(actual) {
+  if (!state.prediction.choice || state.prediction.compared) return;
+  const level = getCurrentLevel();
+  let actualLabel = "";
+  if (level.id === 1 && actual === "complete") actualLabel = "På målet";
+  if (level.id === 7 && actual === "complete") {
+    const repeat = state.programCommands.find((command) => getCommandType(command) === "repeat");
+    actualLabel = repeat ? String(repeat.count) : "Ingen loop";
+  }
+  if (level.id === 9 && typeof actual === "boolean") actualLabel = actual ? "DÅ – hinder" : "ANNARS – fri väg";
+  if (level.signature && actual?.predictedLabel) actualLabel = formatAICategoryTitle(actual.predictedLabel);
+  if (!actualLabel) return;
+  state.prediction.compared = true;
+  elements.predictionPanel.hidden = false;
+  elements.predictionResult.textContent = state.prediction.choice === actualLabel
+    ? `Din förutsägelse stämde: ${actualLabel}.`
+    : `Du gissade ${state.prediction.choice}. Det som hände var: ${actualLabel}.`;
+}
+
+function renderHintPanel() {
+  const hints = getCurrentLevel().hints || [];
+  const visible = state.hintLevel > 0;
+  elements.hintPanel.hidden = !visible;
+  if (!visible) return;
+  elements.hintTitle.textContent = `Ledtråd ${state.hintLevel} av ${hints.length}`;
+  elements.hintText.textContent = hints[state.hintLevel - 1];
+  elements.nextHintButton.hidden = state.hintLevel >= hints.length;
+}
+
+function revealHint() {
+  const hints = getCurrentLevel().hints || [];
+  if (!hints.length || state.executionState.running) return;
+  state.hintLevel = Math.min(hints.length, Math.max(1, state.hintLevel + 1));
+  renderHintPanel();
+  elements.hintPanel.focus?.();
+}
+
+function renderSignatureFeedback() {
+  const level = getCurrentLevel();
+  if (!level?.signature) {
+    elements.signatureFeedback.hidden = true;
+    return;
+  }
+  const failure = state.executionState.failure;
+  if (!failure) {
+    elements.signatureFeedback.hidden = true;
+    elements.signatureFeedback.replaceChildren();
+    return;
+  }
+  elements.signatureFeedback.hidden = false;
+  if (failure.category === "ai_prediction_wrong") {
+    const result = state.signatureState.sortedResults.at(-1);
+    const item = getAIObject(result.objectId);
+    const neighbors = result.neighbors.map((neighbor) => getAIObject(neighbor.objectId)?.name).filter(Boolean);
+    elements.signatureFeedback.innerHTML = `<h3>Modellen gissade fel</h3><p>Programmet följde grenen för <strong>${formatAICategory(result.predictedLabel)}</strong>, men ${item.name} är <strong>${formatAICategory(result.trueCategory)}</strong>.</p><p>Modellen jämförde mest med: ${neighbors.join(", ")}.</p><div class="signature-actions"><button class="secondary-button" type="button" data-signature-action="improve">Förbättra träningen</button><button class="secondary-button" type="button" data-signature-action="trace">Se spåret</button><button class="text-button" type="button" data-signature-action="continue">Fortsätt försöket</button></div>`;
+    return;
+  }
+  elements.signatureFeedback.innerHTML = `<h3>Programmet behöver ändras</h3><p>${failure.message}</p><p>Modellens gissning ändras inte av ett rörelsefel.</p><button class="secondary-button" type="button" data-signature-action="trace">Se spåret</button>`;
+}
+
+function improveTrainingFromMission() {
+  preserveSignatureProgram();
+  state.returnToSignature = true;
+  state.aiLab.stage = "training";
+  showScreen("ai-lab");
+  showAIStatus("Du kom tillbaka eftersom modellen gissade fel. Förbättra exemplen, testa och installera igen.", "warning");
+}
+
+function continueSignatureAttempt() {
+  if (!getCurrentLevel().signature || !state.executionState.failure || state.executionState.running) return;
+  if (state.signatureState.objectIndex >= getAIObjectsByGroup("sorting").length - 1) {
+    showStatus("Försöket är klart, men minst ett föremål hamnade fel. Förbättra träningen och försök igen.", "warning");
+    return;
+  }
+  state.signatureState.objectIndex += 1;
+  state.signatureState.currentObjectId = getAIObjectsByGroup("sorting")[state.signatureState.objectIndex].id;
+  state.signatureState.lastPrediction = null;
+  state.signatureState.pendingModelError = false;
+  state.packageState = createPackageState(getCurrentLevel());
+  state.robot = { ...getCurrentLevel().start };
+  state.executionState.failure = null;
+  state.executionState.plan = compileProgram(state.programCommands).steps;
+  state.executionState.pointer = 0;
+  state.executionState.runId += 1;
+  renderBoard();
+  updateObjectiveStatus();
+  renderProgram();
+  renderSignatureFeedback();
+  renderTracePanel();
+  showStatus("Nästa föremål är framme. Samma program är redo igen.", "info");
 }
 
 // ----- Program editing ------------------------------------------------------
@@ -989,11 +1371,12 @@ function renderProgram({ newCommandIndex = -1 } = {}) {
       const command = COMMANDS[commandId];
       const item = document.createElement("li");
       const isRepeat = commandId === "repeat";
-      item.className = `program-step${isRepeat ? " repeat-step" : ""}${
+      const isConditional = commandId === "if" || commandId === "ifAI";
+      item.className = `program-step${isRepeat ? " repeat-step" : ""}${isConditional ? " conditional-step" : ""}${
         state.executionState.activeCommandIndex === index ? " is-active" : ""
       }${index === newCommandIndex ? " is-new" : ""}`;
       item.dataset.commandIndex = String(index);
-      if (!isRepeat) {
+      if (!isRepeat && !isConditional) {
         item.innerHTML = `
         <span class="program-command-name">
           <span class="command-symbol" aria-hidden="true">${command.symbol}</span>
@@ -1006,10 +1389,15 @@ function renderProgram({ newCommandIndex = -1 } = {}) {
         return item;
       }
 
+      if (isConditional) {
+        item.innerHTML = renderConditionalBlock(commandBlock, index, authoredCount);
+        return item;
+      }
+
       const nestedCommands = commandBlock.commands || [];
       const repeatInfo =
         state.executionState.activeCommandIndex === index && state.executionState.repeatTotal
-          ? `<span class="repeat-iteration">Upprepning ${state.executionState.repeatIteration} av ${state.executionState.repeatTotal}</span>`
+          ? `<span class="repeat-iteration">Varv ${state.executionState.repeatIteration} av ${state.executionState.repeatTotal}</span>`
           : "";
       item.innerHTML = `
         <div class="repeat-main">
@@ -1079,6 +1467,60 @@ function renderProgram({ newCommandIndex = -1 } = {}) {
   updateControls();
 }
 
+function renderConditionalBlock(commandBlock, index, authoredCount) {
+  const isAI = commandBlock.type === "ifAI";
+  const sensor = commandBlock.sensor || getCurrentLevel().conditionSensor || "obstacleAhead";
+  const conditionLabel = isAI
+    ? "modellen gissar metall"
+    : sensor === "packageAhead"
+      ? "paket framför roboten"
+      : "hinder framför roboten";
+  const thenResult = isAI ? "METALL" : "JA";
+  const elseResult = isAI ? "PLAST" : "NEJ";
+  const sensorResult = state.executionState.activeCommandIndex === index && state.executionState.lastSensorResult
+    ? `<span class="condition-result">${state.executionState.lastSensorResult}</span>`
+    : "";
+  return `
+    <div class="conditional-main">
+      <span class="conditional-keyword">OM</span>
+      <span class="condition-sensor"><span aria-hidden="true">${isAI ? "AI" : "◉"}</span>${conditionLabel}</span>
+      ${sensorResult}
+      <button class="remove-command" type="button" aria-label="Ta bort hela Om-blocket ${index + 1}" ${state.executionState.running ? "disabled" : ""}>×</button>
+    </div>
+    ${renderConditionalBranch(commandBlock, index, "then", `DÅ – ${thenResult}`, authoredCount)}
+    ${renderConditionalBranch(commandBlock, index, "else", `ANNARS – ${elseResult}`, authoredCount)}
+  `;
+}
+
+function renderConditionalBranch(commandBlock, topIndex, branch, label, authoredCount) {
+  const branchCommands = branch === "then" ? commandBlock.thenCommands : commandBlock.elseCommands;
+  const allowed = getCurrentLevel().branchCommands || ["forward", "left", "right"];
+  const isActiveBranch = state.executionState.activeCommandIndex === topIndex && state.executionState.activeBranch === branch;
+  return `
+    <section class="condition-branch${isActiveBranch ? " is-active" : ""}" data-branch="${branch}" aria-label="${label}">
+      <strong class="branch-label">${label}</strong>
+      <div class="branch-list">
+        ${branchCommands.length
+          ? branchCommands.map((nested, branchIndex) => {
+              const nestedCommand = COMMANDS[getCommandType(nested)];
+              const isActive = isActiveBranch && state.executionState.activeBranchIndex === branchIndex;
+              return `<span class="nested-command${isActive ? " is-active" : ""}" data-branch-index="${branchIndex}">
+                <span><span class="command-symbol" aria-hidden="true">${nestedCommand.symbol}</span>${nestedCommand.shortLabel}</span>
+                <button class="remove-branch-command" type="button" aria-label="Ta bort ${nestedCommand.label} från ${label}" ${state.executionState.running ? "disabled" : ""}>×</button>
+              </span>`;
+            }).join("")
+          : '<span class="repeat-empty">Ingen instruktion i grenen ännu.</span>'}
+      </div>
+      <div class="nested-command-palette branch-palette">
+        ${allowed.map((commandId) => {
+          const nestedCommand = COMMANDS[commandId];
+          const disabled = state.executionState.running || authoredCount >= getCurrentLevel().maxCommands;
+          return `<button class="nested-add-command" type="button" data-branch-add="${commandId}" aria-label="Lägg ${nestedCommand.label} i ${label}" ${disabled ? 'disabled title="Programmet är fullt"' : ""}><span aria-hidden="true">${nestedCommand.symbol}</span><span>${nestedCommand.shortLabel}</span></button>`;
+        }).join("")}
+      </div>
+    </section>`;
+}
+
 function addCommand(commandId) {
   const level = getCurrentLevel();
   if (state.executionState.running) return;
@@ -1087,6 +1529,7 @@ function addCommand(commandId) {
     showStatus("Programmet är fullt. Ta bort en instruktion för att lägga till en ny.", "warning");
     return;
   }
+  clearExecutionHistoryForEdit();
   state.programCommands.push(createCommandBlock(commandId));
   renderProgram({ newCommandIndex: state.programCommands.length - 1 });
   showStatus(`Instruktionen ${COMMANDS[commandId].label} lades till.`, "info");
@@ -1095,6 +1538,7 @@ function addCommand(commandId) {
 
 function removeCommand(index) {
   if (state.executionState.running || index < 0 || index >= state.programCommands.length) return;
+  clearExecutionHistoryForEdit();
   const [removed] = state.programCommands.splice(index, 1);
   renderProgram();
   showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort.`, "info");
@@ -1104,6 +1548,7 @@ function updateRepeatCount(index, change) {
   if (state.executionState.running) return;
   const command = state.programCommands[index];
   if (getCommandType(command) !== "repeat") return;
+  clearExecutionHistoryForEdit();
   command.count = clampNumber(command.count + change, 2, 5, 3);
   renderProgram();
   showStatus(`Loopen upprepas ${command.count} gånger.`, "info");
@@ -1119,6 +1564,7 @@ function addNestedCommand(index, commandId) {
     showStatus("Programmet är fullt. Ta bort en instruktion för att lägga till en ny.", "warning");
     return;
   }
+  clearExecutionHistoryForEdit();
   command.commands.push(createCommandBlock(commandId));
   renderProgram();
   showStatus(`${COMMANDS[commandId].label} lades in i loopen.`, "info");
@@ -1128,6 +1574,7 @@ function removeNestedCommand(index, nestedIndex) {
   if (state.executionState.running) return;
   const command = state.programCommands[index];
   if (getCommandType(command) !== "repeat") return;
+  clearExecutionHistoryForEdit();
   const [removed] = command.commands.splice(nestedIndex, 1);
   renderProgram();
   showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort från loopen.`, "info");
@@ -1135,9 +1582,52 @@ function removeNestedCommand(index, nestedIndex) {
 
 function clearProgram() {
   if (state.executionState.running || state.programCommands.length === 0) return;
+  clearExecutionHistoryForEdit();
   state.programCommands = [];
   renderProgram();
   showStatus("Programmet är tomt. Bygg ett nytt!", "info");
+}
+
+function addBranchCommand(index, branch, commandId) {
+  if (state.executionState.running || !["then", "else"].includes(branch)) return;
+  const command = state.programCommands[index];
+  if (!["if", "ifAI"].includes(getCommandType(command))) return;
+  if (!(getCurrentLevel().branchCommands || []).includes(commandId) || !canAddAuthoredBlocks(1)) {
+    showStatus("Programmet är fullt eller instruktionen passar inte i grenen.", "warning");
+    return;
+  }
+  clearExecutionHistoryForEdit();
+  const list = branch === "then" ? command.thenCommands : command.elseCommands;
+  list.push(createCommandBlock(commandId));
+  renderProgram();
+  showStatus(`${COMMANDS[commandId].label} lades i ${branch === "then" ? "DÅ" : "ANNARS"}-grenen.`, "info");
+}
+
+function removeBranchCommand(index, branch, branchIndex) {
+  if (state.executionState.running || !["then", "else"].includes(branch)) return;
+  const command = state.programCommands[index];
+  if (!["if", "ifAI"].includes(getCommandType(command))) return;
+  const list = branch === "then" ? command.thenCommands : command.elseCommands;
+  if (branchIndex < 0 || branchIndex >= list.length) return;
+  clearExecutionHistoryForEdit();
+  const [removed] = list.splice(branchIndex, 1);
+  renderProgram();
+  showStatus(`${COMMANDS[getCommandType(removed)].label} togs bort från grenen.`, "info");
+}
+
+function clearExecutionHistoryForEdit() {
+  if (state.executionState.running) return;
+  state.executionState.traceMode = false;
+  state.executionState.plan = [];
+  state.executionState.pointer = 0;
+  state.executionState.history = [];
+  state.executionState.failure = null;
+  state.executionState.activeCommandIndex = -1;
+  state.executionState.activeNestedIndex = -1;
+  state.executionState.activeBranch = "";
+  state.executionState.activeBranchIndex = -1;
+  state.executionState.lastSensorResult = null;
+  renderTracePanel();
 }
 
 function updateControls() {
@@ -1156,6 +1646,9 @@ function updateControls() {
   elements.runProgramButton.querySelector("span:last-child").textContent = running
     ? "Roboten kör…"
     : "Kör programmet";
+  elements.traceStartButton.disabled = running;
+  elements.hintButton.disabled = running;
+  renderTracePanel();
   updateSensorTip();
 }
 
@@ -1163,60 +1656,243 @@ function updateControls() {
 
 async function runProgram() {
   if (state.executionState.running) return;
+  if (!prepareExecution(false)) return;
+  state.executionState.running = true;
+  const runId = state.executionState.runId;
+  updateControls();
+  showStatus("Roboten följer programmet steg för steg…", "info");
+  await runExecutionLoop(runId);
+}
+
+function prepareExecution(traceMode) {
   if (state.programCommands.length === 0) {
     showStatus("Lägg till minst en instruktion först.", "warning");
-    return;
+    return false;
   }
   const executionPlan = compileProgram(state.programCommands);
   if (!executionPlan.ok) {
     showStatus(executionPlan.message, "warning");
+    return false;
+  }
+  if (getCurrentLevel().signature && !isLevelUnlocked(getCurrentLevel())) {
+    showStatus("AI-modellen måste vara giltig och installerad innan uppdraget körs.", "warning");
+    return false;
+  }
+  resetRobotForRun();
+  state.executionState.runId += 1;
+  state.executionState.traceMode = traceMode;
+  state.executionState.plan = executionPlan.steps;
+  state.executionState.pointer = 0;
+  state.executionState.history = [];
+  state.executionState.failure = null;
+  state.executionState.metrics = createAttemptMetrics();
+  state.completionShown = false;
+  comparePrediction("start");
+  renderTracePanel();
+  return true;
+}
+
+async function runExecutionLoop(runId) {
+  const commandDelay = prefersReducedMotion() ? 40 : 480;
+  while (isRunActive(runId)) {
+    if (state.executionState.pointer >= state.executionState.plan.length) {
+      if (await handleExecutionPlanEnd(runId)) continue;
+      return;
+    }
+    const continued = await executeNextStep(runId, commandDelay);
+    if (!continued) return;
+  }
+}
+
+async function executeNextStep(runId, commandDelay) {
+  if (!isRunActive(runId)) return false;
+  const step = state.executionState.plan[state.executionState.pointer];
+  if (!step) return false;
+  if (step.originalCommandType === "repeat") state.executionState.metrics.repeatUsed = true;
+  state.executionState.history.push(createExecutionSnapshot());
+  applyActiveSource(step);
+  renderProgram();
+  renderTracePanel();
+  await wait(prefersReducedMotion() ? 0 : 120);
+  if (!isRunActive(runId)) return false;
+
+  let result;
+  if (step.kind === "condition") result = await executeConditionStep(step, runId, commandDelay);
+  else result = await executeCommand(step.commandId, runId, commandDelay);
+  if (!isRunActive(runId)) return false;
+  state.executionState.pointer += 1;
+
+  if (result === "collision") {
+    state.executionState.metrics.criticalErrors += 1;
+    state.executionState.metrics.programErrors += 1;
+    finishFailedRun("collision", "Roboten försökte köra framåt, men ett hinder var i vägen.");
+    return false;
+  }
+  if (result?.type === "failure") {
+    if (result.category?.includes("arm") || result.category?.includes("package")) state.executionState.metrics.invalidArmActions += 1;
+    state.executionState.metrics.criticalErrors += 1;
+    state.executionState.metrics.programErrors += 1;
+    finishFailedRun(result.category || "program_action_wrong", result.message);
+    return false;
+  }
+  if (result?.type === "model-error") {
+    state.executionState.metrics.modelErrors += 1;
+    finishFailedRun("ai_prediction_wrong", result.message);
+    return false;
+  }
+  updateTraceStatus(step, result);
+  if (!getCurrentLevel().signature && checkCompletion()) {
+    finishSuccessfulRun();
+    return false;
+  }
+  return true;
+}
+
+function applyActiveSource(step) {
+  state.executionState.activeCommandIndex = step.topIndex;
+  state.executionState.activeNestedIndex = step.nestedIndex;
+  state.executionState.activeBranch = step.branch || "";
+  state.executionState.activeBranchIndex = step.branchIndex ?? -1;
+  state.executionState.repeatIteration = step.iteration || 0;
+  state.executionState.repeatTotal = step.totalIterations || 0;
+}
+
+async function handleExecutionPlanEnd(runId) {
+  const level = getCurrentLevel();
+  if (level.signature && state.packageState.delivered && samePosition(state.robot, level.goal) && !state.packageState.carrying) {
+    if (state.signatureState.objectIndex < getAIObjectsByGroup("sorting").length - 1) {
+      state.signatureState.objectIndex += 1;
+      state.signatureState.currentObjectId = getAIObjectsByGroup("sorting")[state.signatureState.objectIndex].id;
+      state.signatureState.lastPrediction = null;
+      state.packageState = createPackageState(level);
+      state.robot = { ...level.start };
+      const compiled = compileProgram(state.programCommands);
+      state.executionState.plan = compiled.steps;
+      state.executionState.pointer = 0;
+      renderBoard();
+      updateObjectiveStatus();
+      showStatus(`Nästa föremål är framme. Samma program körs igen (${state.signatureState.objectIndex + 1} av 3).`, "info");
+      return true;
+    }
+    finishSuccessfulRun();
+    return false;
+  }
+  const category = level.package && !state.packageState.delivered
+    ? level.signature && !state.signatureState.lastPrediction
+      ? "missing_scan"
+      : "goal_before_delivery"
+    : state.collectedItems.size < level.energy.length
+      ? "energy_missing"
+      : state.executionState.metrics.conditionsUsed > 0
+        ? "condition_branch_dead_end"
+        : "program_ended_early";
+  const message = category === "missing_scan"
+    ? "Kameran behöver skanna föremålet och programmet måste lämna det vid en station."
+    : category === "goal_before_delivery"
+      ? "Programmet tog slut innan paketet var levererat."
+      : category === "energy_missing"
+        ? "Programmet tog slut innan all energi var insamlad."
+        : category === "condition_branch_dead_end"
+          ? "Villkoret valde en gren, men programmet nådde inte målet. Följ spåret och kontrollera grenens instruktioner."
+        : "Programmet tog slut innan roboten nådde målet.";
+  state.executionState.metrics.programErrors += 1;
+  finishFailedRun(category, message);
+  return false;
+}
+
+function startTraceMode() {
+  if (state.executionState.running || !prepareExecution(true)) return;
+  showStatus("Spårläge är klart. Tryck på Nästa steg.", "info");
+  elements.traceNextButton.focus();
+}
+
+async function runNextTraceStep() {
+  if (state.executionState.running) return;
+  if (!state.executionState.traceMode && !prepareExecution(true)) return;
+  if (state.executionState.failure) {
+    showStatus("Spola tillbaka eller ändra programmet för att fortsätta.", "warning");
     return;
   }
-
-  resetRobotForRun();
   state.executionState.running = true;
-  state.executionState.runId += 1;
   const runId = state.executionState.runId;
-  state.completionShown = false;
   updateControls();
-  showStatus("Roboten följer programmet steg för steg…", "info");
-
-  const commandDelay = prefersReducedMotion() ? 80 : 520;
-  for (const step of executionPlan.steps) {
-    if (!isRunActive(runId)) return;
-    state.executionState.activeCommandIndex = step.topIndex;
-    state.executionState.activeNestedIndex = step.nestedIndex;
-    state.executionState.repeatIteration = step.iteration;
-    state.executionState.repeatTotal = step.totalIterations;
-    renderProgram();
-    await wait(prefersReducedMotion() ? 20 : 150);
-    if (!isRunActive(runId)) return;
-
-    const result = await executeCommand(step.commandId, runId, commandDelay);
-    if (!isRunActive(runId)) return;
-    if (result === "collision") {
-      finishFailedRun("Oj! Väggen var i vägen. Ändra programmet och testa igen.");
-      return;
-    }
-    if (result && result.type === "failure") {
-      finishFailedRun(result.message);
-      return;
-    }
-    if (checkCompletion()) {
-      finishSuccessfulRun();
-      return;
-    }
+  if (state.executionState.pointer >= state.executionState.plan.length) {
+    await handleExecutionPlanEnd(runId);
+  } else {
+    await executeNextStep(runId, prefersReducedMotion() ? 20 : 360);
+    if (state.executionState.running) state.executionState.running = false;
   }
+  updateControls();
+  renderTracePanel();
+}
 
-  if (!isRunActive(runId)) return;
-  const level = getCurrentLevel();
-  finishFailedRun(
-    level.package && !state.packageState.delivered
-      ? "Paketet är inte levererat ännu."
-      : state.collectedItems.size < level.energy.length
-        ? "Programmet tog slut. Kom ihåg att hämta all energi först!"
-        : "Programmet tog slut före målet. Vad kan du lägga till?",
-  );
+async function runTraceToEnd() {
+  if (state.executionState.running) return;
+  if (!state.executionState.traceMode && !prepareExecution(true)) return;
+  if (state.executionState.failure) return;
+  state.executionState.running = true;
+  const runId = state.executionState.runId;
+  updateControls();
+  await runExecutionLoop(runId);
+  renderTracePanel();
+}
+
+function rewindTrace() {
+  if (state.executionState.running || !state.executionState.history.length) return;
+  state.executionState.runId += 1;
+  const snapshot = state.executionState.history.pop();
+  restoreExecutionSnapshot(snapshot);
+  state.executionState.failure = null;
+  state.executionState.traceMode = true;
+  renderBoard();
+  updateObjectiveStatus();
+  renderProgram();
+  renderTracePanel();
+  renderSignatureFeedback();
+  showStatus("Ett steg spolades tillbaka. Programmet är oförändrat.", "info");
+}
+
+function exitTraceMode() {
+  if (state.executionState.running) return;
+  initializeLevel({ keepProgram: true });
+  showStatus("Spårläget avslutades. Programmet finns kvar.", "info");
+}
+
+function createExecutionSnapshot() {
+  return {
+    robot: { ...state.robot },
+    collectedItems: [...state.collectedItems],
+    packageState: structuredClone(state.packageState),
+    signatureState: structuredClone(state.signatureState),
+    plan: structuredClone(state.executionState.plan),
+    pointer: state.executionState.pointer,
+    activeCommandIndex: state.executionState.activeCommandIndex,
+    activeNestedIndex: state.executionState.activeNestedIndex,
+    activeBranch: state.executionState.activeBranch,
+    activeBranchIndex: state.executionState.activeBranchIndex,
+    repeatIteration: state.executionState.repeatIteration,
+    repeatTotal: state.executionState.repeatTotal,
+    lastSensorResult: state.executionState.lastSensorResult,
+    metrics: structuredClone(state.executionState.metrics),
+  };
+}
+
+function restoreExecutionSnapshot(snapshot) {
+  state.robot = { ...snapshot.robot };
+  state.collectedItems = new Set(snapshot.collectedItems);
+  state.packageState = structuredClone(snapshot.packageState);
+  state.signatureState = structuredClone(snapshot.signatureState);
+  state.executionState.plan = structuredClone(snapshot.plan);
+  state.executionState.pointer = snapshot.pointer;
+  state.executionState.activeCommandIndex = snapshot.activeCommandIndex;
+  state.executionState.activeNestedIndex = snapshot.activeNestedIndex;
+  state.executionState.activeBranch = snapshot.activeBranch;
+  state.executionState.activeBranchIndex = snapshot.activeBranchIndex;
+  state.executionState.repeatIteration = snapshot.repeatIteration;
+  state.executionState.repeatTotal = snapshot.repeatTotal;
+  state.executionState.lastSensorResult = snapshot.lastSensorResult;
+  state.executionState.metrics = structuredClone(snapshot.metrics);
+  state.executionState.running = false;
 }
 
 function resetRobotForRun() {
@@ -1224,12 +1900,52 @@ function resetRobotForRun() {
   state.robot = { ...level.start };
   state.collectedItems = new Set();
   state.packageState = createPackageState(level);
+  if (level.signature) state.signatureState = createSignatureState();
   state.executionState.activeCommandIndex = -1;
   state.executionState.activeNestedIndex = -1;
+  state.executionState.activeBranch = "";
+  state.executionState.activeBranchIndex = -1;
+  state.executionState.lastSensorResult = null;
   state.executionState.repeatIteration = 0;
   state.executionState.repeatTotal = 0;
   renderBoard();
   updateObjectiveStatus();
+}
+
+async function executeConditionStep(step, runId, delay) {
+  let result;
+  if (step.sensor === "modelPredictsMetal") {
+    if (!state.signatureState.lastPrediction) {
+      return { type: "failure", category: "missing_scan", message: "Kameran behöver skanna föremålet först." };
+    }
+    result = state.signatureState.lastPrediction.predictedLabel === "metal";
+    state.executionState.metrics.aiConditionalUsed = true;
+  } else {
+    showSensorPulse();
+    state.executionState.metrics.sensorsUsed += 1;
+    const target = getForwardCell();
+    result = step.sensor === "packageAhead"
+      ? Boolean(target && isPackageAt(target.x, target.y))
+      : isBlockedAhead();
+  }
+  state.executionState.metrics.conditionsUsed += 1;
+  if (result) state.executionState.metrics.trueBranches += 1;
+  else state.executionState.metrics.falseBranches += 1;
+  const branch = result ? "then" : "else";
+  const branchSteps = structuredClone(result ? step.thenSteps : step.elseSteps).map((branchStep) => ({
+    ...branchStep,
+    originalCommandType: step.commandId,
+  }));
+  state.executionState.plan.splice(state.executionState.pointer + 1, 0, ...branchSteps);
+  state.executionState.activeBranch = branch;
+  state.executionState.lastSensorResult = step.sensor === "modelPredictsMetal"
+    ? `Modellens gissning: ${formatAICategory(state.signatureState.lastPrediction.predictedLabel)} · ${branch === "then" ? "DÅ" : "ANNARS"}`
+      : `${result ? "JA" : "NEJ"} – ${step.sensor === "packageAhead" ? (result ? "paket hittat" : "inget paket") : (result ? "hinder hittat" : "vägen är fri")} · ${branch === "then" ? "DÅ" : "ANNARS"}`;
+  if (getCurrentLevel().id === 9) comparePrediction(result);
+  renderProgram();
+  showStatus(`Sensorn gav information. Villkoret valde ${branch === "then" ? "DÅ" : "ANNARS"}-grenen.`, "info");
+  await wait(delay);
+  return { type: "condition", result, branch };
 }
 
 async function executeCommand(commandId, runId, delay) {
@@ -1259,6 +1975,7 @@ async function executeCommand(commandId, runId, delay) {
     markSensorIntroUsed();
     showSensorPulse();
     const obstacleAhead = isBlockedAhead();
+    state.executionState.metrics.sensorsUsed += 1;
     showStatus(
       obstacleAhead
         ? "Sensorn hittar ett hinder. Roboten svänger höger!"
@@ -1284,7 +2001,51 @@ async function executeCommand(commandId, runId, delay) {
     return result;
   }
 
+  if (commandId === "aiScan") {
+    if (!getCurrentLevel().signature || !state.packageState.carrying) {
+      return { type: "failure", category: "missing_package_for_scan", message: "Robotarmen behöver hålla föremålet innan kameran kan skanna." };
+    }
+    const item = getAIObject(state.signatureState.currentObjectId);
+    if (!item || !state.aiLab.installed) {
+      return { type: "failure", category: "invalid_model", message: "En giltig modell måste vara installerad i kameran." };
+    }
+    animateRobotReaction("is-scanning", prefersReducedMotion() ? 40 : 420);
+    await wait(delay);
+    if (!isRunActive(runId)) return "cancelled";
+    state.signatureState.lastPrediction = predictAIObject(item);
+    if (state.signatureState.objectIndex === 0) comparePrediction(state.signatureState.lastPrediction);
+    updateObjectiveStatus();
+    showStatus(`Skanning klar. Modellen gissar ${formatAICategory(state.signatureState.lastPrediction.predictedLabel)}. En stark gissning kan fortfarande vara fel.`, "info");
+    return { type: "scan", prediction: state.signatureState.lastPrediction };
+  }
+
   return "unknown";
+}
+
+function updateTraceStatus(step, result) {
+  const total = state.executionState.plan.length;
+  const position = Math.min(state.executionState.pointer, total);
+  let description = `${COMMANDS[step.commandId]?.shortLabel || "Instruktionen"} kördes.`;
+  if (step.iteration) description += ` Varv ${step.iteration} av ${step.totalIterations}.`;
+  if (result?.type === "condition") description = `${state.executionState.lastSensorResult}.`;
+  if (result?.type === "scan") description = `Modellen gissade ${formatAICategory(result.prediction.predictedLabel)}.`;
+  elements.tracePosition.textContent = `Steg ${position} av ${total}`;
+  elements.traceDescription.textContent = description;
+  renderTracePanel();
+}
+
+function renderTracePanel() {
+  if (!elements.tracePanel) return;
+  const trace = state.executionState.traceMode;
+  elements.tracePanel.hidden = !trace;
+  elements.traceStartButton.hidden = trace;
+  if (!trace) return;
+  const total = state.executionState.plan.length;
+  elements.tracePosition.textContent = total ? `Steg ${Math.min(state.executionState.pointer, total)} av ${total}` : "Redo";
+  elements.traceNextButton.disabled = state.executionState.running || Boolean(state.executionState.failure);
+  elements.traceRunButton.disabled = state.executionState.running || Boolean(state.executionState.failure);
+  elements.traceRewindButton.disabled = state.executionState.running || state.executionState.history.length === 0;
+  elements.traceExitButton.disabled = state.executionState.running;
 }
 
 function attemptMoveForward() {
@@ -1331,6 +2092,12 @@ function collectEnergyAtRobot() {
 
 function checkCompletion() {
   const level = getCurrentLevel();
+  if (level.signature) {
+    return state.signatureState.sortedResults.length === getAIObjectsByGroup("sorting").length
+      && samePosition(state.robot, level.goal)
+      && !state.packageState.carrying
+      && state.packageState.delivered;
+  }
   return (
     samePosition(state.robot, level.goal) &&
     state.collectedItems.size === level.energy.length &&
@@ -1338,16 +2105,16 @@ function checkCompletion() {
   );
 }
 
-function finishFailedRun(message) {
+function finishFailedRun(category, message) {
   state.executionState.running = false;
-  state.executionState.activeCommandIndex = -1;
-  state.executionState.activeNestedIndex = -1;
-  state.executionState.repeatIteration = 0;
-  state.executionState.repeatTotal = 0;
+  state.executionState.traceMode = true;
+  state.executionState.failure = { category, message };
   clearBoardEffects();
   renderProgram();
   updateControls();
   showStatus(message, "warning");
+  renderSignatureFeedback();
+  renderTracePanel();
 }
 
 function finishSuccessfulRun() {
@@ -1360,23 +2127,23 @@ function finishSuccessfulRun() {
   state.executionState.repeatTotal = 0;
   clearBoardEffects();
   const level = getCurrentLevel();
+  comparePrediction("complete");
   const authoredCount = countAuthoredBlocks(state.programCommands);
-  const stars = calculateStars(authoredCount, level.targetCommands);
+  const mastery = evaluateMasteryCriteria(level, authoredCount);
+  const stars = mastery.filter(Boolean).length;
 
   state.bestStars[level.id] = Math.max(state.bestStars[level.id] || 0, stars);
-  state.unlockedLevel = Math.max(
-    state.unlockedLevel,
-    Math.min(LEVELS.length, level.id + 1),
-  );
+  if (!level.signature) state.unlockedLevel = Math.max(state.unlockedLevel, Math.min(11, level.id + 1));
+  if (level.signature) state.aiLab.completed = true;
   saveProgress();
   renderProgram();
   updateControls();
-  showStatus("Uppdrag klart! Roboten hittade rätt.", "success");
+  showStatus(level.signature ? "Alla tre föremål sorterades och roboten står i den säkra zonen." : "Uppdrag klart! Roboten hittade rätt.", "success");
   animateRobotClass("is-celebrating");
 
   window.setTimeout(() => {
     if (!state.completionShown || state.currentScreen !== "game") return;
-    showCompletionDialog(stars);
+    showCompletionDialog(stars, mastery);
   }, prefersReducedMotion() ? 20 : 450);
 }
 
@@ -1386,13 +2153,49 @@ function calculateStars(commandCount, targetCount) {
   return 1;
 }
 
+function evaluateMasteryCriteria(level, authoredCount = countAuthoredBlocks(state.programCommands)) {
+  const metrics = state.executionState.metrics;
+  const hasType = (type) => state.programCommands.some((command) => getCommandType(command) === type);
+  const complete = true;
+  switch (level.id) {
+    case 4:
+      return [complete, state.collectedItems.size === level.energy.length, authoredCount <= level.targetCommands];
+    case 5:
+      return [complete, metrics.sensorsUsed > 0, authoredCount <= level.targetCommands];
+    case 6:
+      return [complete, metrics.sensorsUsed > 0, metrics.criticalErrors === 0 && state.collectedItems.size === level.energy.length];
+    case 7:
+      return [complete, metrics.repeatUsed && hasType("repeat"), authoredCount <= level.targetCommands];
+    case 8:
+      return [complete, metrics.invalidArmActions === 0, authoredCount <= level.targetCommands];
+    case 9:
+      return [complete, metrics.conditionsUsed > 0 && hasType("if"), metrics.trueBranches + metrics.falseBranches > 0];
+    case 10:
+      return [complete, metrics.trueBranches > 0 && metrics.falseBranches > 0, authoredCount <= level.targetCommands];
+    case 11:
+      return [complete, metrics.conditionsUsed > 0 && hasType("if"), metrics.invalidArmActions === 0];
+    case 12:
+      return [complete, metrics.programErrors === 0, metrics.aiConditionalUsed && hasType("ifAI") && authoredCount <= level.targetCommands];
+    default:
+      return [complete, metrics.criticalErrors === 0, authoredCount <= level.targetCommands];
+  }
+}
+
 function cancelExecution() {
   state.executionState.runId += 1;
   state.executionState.running = false;
+  state.executionState.traceMode = false;
+  state.executionState.plan = [];
+  state.executionState.pointer = 0;
+  state.executionState.history = [];
+  state.executionState.failure = null;
   state.executionState.activeCommandIndex = -1;
   state.executionState.activeNestedIndex = -1;
+  state.executionState.activeBranch = "";
+  state.executionState.activeBranchIndex = -1;
   state.executionState.repeatIteration = 0;
   state.executionState.repeatTotal = 0;
+  state.executionState.lastSensorResult = null;
   clearBoardEffects();
   updateControlsIfReady();
 }
@@ -1449,7 +2252,7 @@ function clearBoardEffects() {
   elements.board.querySelector("#robot-piece")?.classList.remove("is-turning");
   const visual = elements.board.querySelector(".robot-visual");
   if (!visual) return;
-  visual.classList.remove("is-bumping", "is-arm-active", "is-delivering");
+  visual.classList.remove("is-bumping", "is-arm-active", "is-delivering", "is-scanning");
 }
 
 function getForwardCell() {
@@ -1490,6 +2293,14 @@ function createCommandBlock(commandId) {
   if (commandId === "repeat") {
     return { type: "repeat", count: 3, commands: [] };
   }
+  if (commandId === "if" || commandId === "ifAI") {
+    return {
+      type: commandId,
+      sensor: commandId === "ifAI" ? "modelPredictsMetal" : getCurrentLevel().conditionSensor || "obstacleAhead",
+      thenCommands: [],
+      elseCommands: [],
+    };
+  }
   return { type: commandId };
 }
 
@@ -1499,8 +2310,12 @@ function getCommandType(command) {
 
 function countAuthoredBlocks(commands) {
   return commands.reduce((total, command) => {
-    if (getCommandType(command) !== "repeat") return total + 1;
-    return total + 1 + countAuthoredBlocks(command.commands || []);
+    const type = getCommandType(command);
+    if (type === "repeat") return total + 1 + countAuthoredBlocks(command.commands || []);
+    if (type === "if" || type === "ifAI") {
+      return total + 1 + countAuthoredBlocks(command.thenCommands || []) + countAuthoredBlocks(command.elseCommands || []);
+    }
+    return total + 1;
   }, 0);
 }
 
@@ -1513,13 +2328,39 @@ function compileProgram(commands) {
   for (let topIndex = 0; topIndex < commands.length; topIndex += 1) {
     const command = commands[topIndex];
     const commandId = getCommandType(command);
-    if (commandId !== "repeat") {
+    if (commandId !== "repeat" && commandId !== "if" && commandId !== "ifAI") {
       steps.push({
+        kind: "action",
         commandId,
         topIndex,
         nestedIndex: -1,
+        branch: "",
+        branchIndex: -1,
         iteration: 0,
         totalIterations: 0,
+        originalCommandType: commandId,
+      });
+      continue;
+    }
+    if (commandId === "if" || commandId === "ifAI") {
+      const thenCommands = command.thenCommands || [];
+      const elseCommands = command.elseCommands || [];
+      if (!thenCommands.length || !elseCommands.length) {
+        return { ok: false, message: "Om-blocket behöver minst en instruktion i både DÅ och ANNARS." };
+      }
+      steps.push({
+        kind: "condition",
+        commandId,
+        sensor: command.sensor || (commandId === "ifAI" ? "modelPredictsMetal" : "obstacleAhead"),
+        topIndex,
+        nestedIndex: -1,
+        branch: "",
+        branchIndex: -1,
+        iteration: 0,
+        totalIterations: 0,
+        originalCommandType: commandId,
+        thenSteps: compileBranchSteps(thenCommands, topIndex, "then"),
+        elseSteps: compileBranchSteps(elseCommands, topIndex, "else"),
       });
       continue;
     }
@@ -1538,16 +2379,34 @@ function compileProgram(commands) {
     for (let iteration = 1; iteration <= repeatCount; iteration += 1) {
       nested.forEach((nestedCommand, nestedIndex) => {
         steps.push({
+          kind: "action",
           commandId: getCommandType(nestedCommand),
           topIndex,
           nestedIndex,
+          branch: "",
+          branchIndex: -1,
           iteration,
           totalIterations: repeatCount,
+          originalCommandType: "repeat",
         });
       });
     }
   }
   return { ok: true, steps };
+}
+
+function compileBranchSteps(commands, topIndex, branch) {
+  return commands.map((command, branchIndex) => ({
+    kind: "action",
+    commandId: getCommandType(command),
+    topIndex,
+    nestedIndex: -1,
+    branch,
+    branchIndex,
+    iteration: 0,
+    totalIterations: 0,
+    originalCommandType: "if",
+  }));
 }
 
 function createEmptyPackageState() {
@@ -1580,16 +2439,16 @@ function isPackageAt(x, y) {
 
 async function executePickup(runId, delay) {
   const level = getCurrentLevel();
-  if (!level.package) return { type: "failure", message: "Här finns inget paket att hämta." };
+  if (!level.package) return { type: "failure", category: "pickup_no_package", message: "Här finns inget paket att hämta." };
   if (state.packageState.carrying) {
-    return { type: "failure", message: "Robotarmen håller redan ett paket." };
+    return { type: "failure", category: "arm_already_carrying", message: "Robotarmen håller redan ett paket." };
   }
   if (state.packageState.collected || state.packageState.delivered) {
-    return { type: "failure", message: "Paketet är redan hämtat." };
+    return { type: "failure", category: "package_already_collected", message: "Paketet är redan hämtat." };
   }
   const target = getForwardCell();
   if (!target || !isPackageAt(target.x, target.y)) {
-    return { type: "failure", message: "Robotarmen hittar inget paket framför sig." };
+    return { type: "failure", category: "pickup_wrong_position", message: "Roboten står inte bredvid paketet ännu." };
   }
   animateArm("is-arm-active", delay);
   await wait(delay);
@@ -1605,23 +2464,48 @@ async function executePickup(runId, delay) {
 
 async function executeDrop(runId, delay) {
   const level = getCurrentLevel();
-  if (!level.delivery) return { type: "failure", message: "Här finns ingen leveransplats." };
+  if (!level.delivery && !level.stations) return { type: "failure", category: "drop_no_station", message: "Här finns ingen leveransplats." };
   if (!state.packageState.carrying) {
-    return { type: "failure", message: "Robotarmen är tom. Hämta paketet först." };
+    return { type: "failure", category: "drop_without_carrying", message: "Robotarmen är tom. Hämta paketet först." };
+  }
+  if (level.signature && !state.signatureState.lastPrediction) {
+    return { type: "failure", category: "missing_scan", message: "Kameran behöver skanna föremålet först." };
   }
   const target = getForwardCell();
-  if (!target || !samePosition(target, level.delivery)) {
-    return { type: "failure", message: "Leveransplatsen måste vara framför roboten." };
+  const deliveryTarget = level.signature
+    ? level.stations[state.signatureState.lastPrediction.predictedLabel]
+    : level.delivery;
+  if (!target || !samePosition(target, deliveryTarget)) {
+    return { type: "failure", category: "drop_wrong_station", message: level.signature ? "Programmet körde till fel station för modellens gissning." : "Leveransplatsen måste vara framför roboten." };
   }
   animateArm("is-delivering", delay);
   await wait(delay);
   if (!isRunActive(runId)) return "cancelled";
   state.packageState.carrying = false;
   state.packageState.delivered = true;
-  state.packageState.position = { ...level.delivery };
+  state.packageState.position = { ...deliveryTarget };
+  if (level.signature) {
+    const item = getAIObject(state.signatureState.currentObjectId);
+    const prediction = state.signatureState.lastPrediction;
+    const result = {
+      objectId: item.id,
+      predictedLabel: prediction.predictedLabel,
+      trueCategory: item.trueCategory,
+      correct: prediction.predictedLabel === item.trueCategory,
+      confidenceBand: prediction.confidenceBand,
+      neighbors: prediction.neighbors,
+    };
+    state.signatureState.sortedResults.push(result);
+    state.signatureState.cycleDelivered = true;
+    state.signatureState.pendingModelError = !result.correct;
+  }
   renderBoard();
   updateObjectiveStatus();
-  showStatus("Paketet är levererat.", "success");
+  if (level.signature && state.signatureState.pendingModelError) {
+    renderSignatureFeedback();
+    return { type: "model-error", message: "Programmet gjorde det du skrev, men modellen gissade fel material." };
+  }
+  showStatus(level.signature ? "Föremålet lades vid stationen som programmet valde." : "Paketet är levererat.", "success");
   return "delivered";
 }
 
@@ -1681,10 +2565,10 @@ function openAILab() {
 
 function renderAILab() {
   const stageLabels = {
-    training: "Steg 1 av 2 · Träningslabbet",
-    testing: "Steg 1 av 2 · Testa modellen",
-    sorting: "Steg 2 av 2 · Sorteringsuppdraget",
-    complete: "AI-labbet klart",
+    training: "1 Träna · 2 Prova · 3 Använd",
+    testing: "1 Träna · 2 Prova · 3 Använd",
+    sorting: "1 Träna · 2 Prova · 3 Använd",
+    complete: "Träna · Prova · Använd klart",
   };
   elements.aiStageProgress.textContent = stageLabels[state.aiLab.stage] || stageLabels.training;
   elements.aiCameraStatus.textContent = state.aiLab.completed
@@ -1718,12 +2602,12 @@ function renderAILab() {
 function renderAILabIntroduction() {
   return `
     <section class="ai-intro" aria-labelledby="ai-intro-title">
-      <h2 id="ai-intro-title">Så lär sig AI-kameran</h2>
-      <p>Robotens kamera kan se egenskaper som färg, glans, form och genomskinlighet, men den vet inte automatiskt vad ett föremål är. Du behöver visa märkta exempel.</p>
-      <p><strong>Program följer regler exakt. AI jämför nya saker med exempel och gör en bedömning.</strong></p>
+      <h2 id="ai-intro-title">Så tränar du modellen</h2>
+      <p>Kameran registrerar synliga egenskaper. Du märker exempel som metall eller plast.</p>
+      <p><strong>Program följer regler som du skriver. Modellen jämför med exempel och gör en gissning.</strong></p>
       <details>
         <summary>Hur fungerar det?</summary>
-        <p>När du tränar AI:n sparas egenskaperna hos dina exempel. Ett nytt föremål jämförs sedan med de mest lika exemplen. AI:n kan därför bli osäker eller ge fel svar.</p>
+        <p>När du tränar sparas egenskaperna hos dina exempel. Ett nytt föremål jämförs med de mest lika exemplen. Modellen kan därför gissa fel.</p>
       </details>
       <button class="text-button ai-intro-dismiss" type="button" data-ai-action="dismiss-intro">Jag fattar</button>
     </section>
@@ -1749,7 +2633,7 @@ function renderAITrainingStage() {
           <div>
             <p class="card-kicker">Träningslabbet</p>
             <h2 id="training-cards-title">Välj och märk sex kort</h2>
-            <p>Du märker korten. AI:n lär sig från märkningen du ger – även om märkningen blir fel. Facit är dolt medan du tränar.</p>
+            <p>Du märker korten. Modellen använder märkningen du ger – även om märkningen blir fel. Facit är dolt medan du tränar.</p>
           </div>
           <span class="ai-count">${selectedCount} / 6 valda</span>
         </div>
@@ -1763,9 +2647,15 @@ function renderAITrainingStage() {
           <div><p class="card-kicker">Dina märkta kort</p><h2>Min träningssamling</h2></div>
           <div class="ai-balance">${balance}</div>
         </div>
+        <div class="dataset-overview" aria-label="Översikt över träningssamlingen">
+          <span><strong>${selectedCount}</strong> valda</span>
+          <span><strong>${metalItems.length}</strong> metall</span>
+          <span><strong>${plasticItems.length}</strong> plast</span>
+          <span><strong>${hasLowAIVariety("metal") || hasLowAIVariety("plastic") ? "Liten" : "Bra"}</strong> variation</span>
+        </div>
         ${renderAISummaryGroup("Mina metallexempel", "metal", metalItems)}
         ${renderAISummaryGroup("Mina plastexempel", "plastic", plasticItems)}
-        <p class="ai-helper-text">En jämn och varierad träningssamling kan hjälpa AI:n, men det är testet som visar hur modellen fungerar.</p>
+        <p class="ai-helper-text">En jämn och varierad träningssamling kan hjälpa modellen, men testet visar hur den faktiskt fungerar.</p>
         <button class="primary-button ai-train-action" type="button" data-ai-action="train">Träna AI-kameran</button>
       </aside>
     </div>
@@ -1839,7 +2729,7 @@ function renderAITrainingProgress() {
     <section class="ai-panel ai-training-progress" aria-live="polite">
       <div class="ai-scanner" aria-hidden="true"></div>
       <h2>${state.aiLab.trainingStep || "Läser träningskort…"}</h2>
-      <p class="ai-helper-text">AI-kameran jämför de fem synliga egenskaperna i dina sex märkta exempel.</p>
+      <p class="ai-helper-text">Modellen byggs av de synliga egenskaperna i dina sex märkta exempel.</p>
     </section>
   `;
 }
@@ -1857,7 +2747,7 @@ function renderAITestStage() {
         <div>
           <p class="card-kicker">Test med nya föremål</p>
           <h2 id="ai-test-title" tabindex="-1">Testa AI-kameran</h2>
-          <p>Nu testar vi AI:n på nya föremål som inte fanns i träningen.</p>
+          <p>Nu provar du modellen på föremål som inte fanns i träningen.</p>
         </div>
         <span class="ai-count">Test ${state.aiLab.testIndex + 1} av ${testObjects.length}</span>
       </div>
@@ -1884,17 +2774,17 @@ function renderAICurrentTestState(item, prediction) {
   if (!state.aiLab.testScanned || !prediction) {
     return `
       <div class="ai-before-scan">
-        <p><strong>AI:n jämför nya saker med exempel som du har märkt.</strong></p>
-        <button class="primary-button" type="button" data-ai-action="scan">Låt AI:n undersöka</button>
+        <p><strong>Modellen jämför nya saker med exempel som du har märkt.</strong></p>
+        <button class="primary-button" type="button" data-ai-action="scan">Skanna föremålet</button>
       </div>`;
   }
   const revealed = state.aiLab.testRevealed;
   return `
     <section class="ai-prediction-panel" aria-labelledby="ai-prediction-title">
-      <p class="card-kicker">AI-kamerans svar</p>
-      <h3 id="ai-prediction-title" tabindex="-1">AI:n tror: ${formatAICategoryTitle(prediction.predictedLabel)}</h3>
-      <div class="ai-confidence"><span>AI:ns säkerhetsnivå</span><strong>${prediction.confidenceBand}</strong></div>
-      <p class="ai-confidence-note">Säkerhetsnivån visar hur tydligt träningsexemplen pekar åt samma håll. Den garanterar inte att svaret är rätt.</p>
+      <p class="card-kicker">Modellens gissning</p>
+      <h3 id="ai-prediction-title" tabindex="-1">Modellen gissar: ${formatAICategoryTitle(prediction.predictedLabel)}</h3>
+      <div class="ai-confidence"><span>Gissningens styrka</span><strong>${prediction.confidenceBand}</strong></div>
+      <p class="ai-confidence-note">En stark gissning kan fortfarande vara fel.</p>
       <p class="ai-model-reason">${getPreRevealExplanation(prediction)}</p>
     </section>
     ${renderAINeighbors(prediction)}
@@ -1905,7 +2795,7 @@ function renderAICurrentTestState(item, prediction) {
 function renderAINeighbors(prediction) {
   return `
     <section class="ai-neighbors" aria-labelledby="ai-neighbors-title">
-      <h3 id="ai-neighbors-title">AI:n jämförde mest med:</h3>
+      <h3 id="ai-neighbors-title">Modellen jämförde mest med de här exemplen:</h3>
       <div class="ai-neighbor-grid">
         ${prediction.neighbors.map((neighbor) => {
           const item = getAIObject(neighbor.objectId);
@@ -1914,6 +2804,7 @@ function renderAINeighbors(prediction) {
             <strong>${item.name}</strong>
             <span>Märkt som ${formatAICategory(neighbor.assignedLabel)}</span>
             <small>${neighbor.similarity}</small>
+            ${renderAIPropertyChips(item)}
           </article>`;
         }).join("")}
       </div>
@@ -1927,7 +2818,7 @@ function renderAIFacit(item, prediction) {
   return `
     <section class="ai-facit ${prediction.correct ? "is-correct" : "is-incorrect"}" aria-labelledby="ai-facit-title">
       <h3 id="ai-facit-title" tabindex="-1">Rätt svar: ${formatAICategoryTitle(item.trueCategory)}</h3>
-      <p class="ai-result-mark ${prediction.correct ? "is-correct" : "is-incorrect"}">${prediction.correct ? "AI:n bedömde rätt." : "AI:n bedömde fel."}</p>
+      <p class="ai-result-mark ${prediction.correct ? "is-correct" : "is-incorrect"}">${prediction.correct ? "Modellen gissade rätt." : "Modellen gissade fel."}</p>
       <p>${getPostRevealFeedback(prediction)}</p>
       <div class="ai-test-actions">
         <button class="primary-button" type="button" data-ai-action="next-test">${finalAction}</button>
@@ -1939,17 +2830,18 @@ function renderAITestSummary() {
   const results = state.aiLab.testResults;
   const score = results.filter((result) => result.correct).length;
   const messages = [
-    "AI:n behöver bättre träning.",
-    "AI:n behöver bättre träning.",
-    "AI:n har börjat hitta mönster, men behöver bättre exempel.",
-    "Bra modell! Den klarade de flesta nya föremålen.",
-    "Stark modell! Dina exempel fungerade bra på nya föremål.",
+    "Modellen behöver andra eller bättre märkta exempel.",
+    "Modellen behöver andra eller bättre märkta exempel.",
+    "Exemplen räcker inte för installation ännu.",
+    "Modellen klarade gränsen för installation.",
+    "Modellen gissade rätt på alla fyra testföremål.",
   ];
+  const canInstall = score >= 3;
   return `<section class="ai-panel" aria-labelledby="ai-test-summary-title">
     <div class="ai-panel-heading"><div><p class="card-kicker">Test med nya föremål</p><h2 id="ai-test-summary-title" tabindex="-1">AI-testet</h2><p>${messages[score]}</p></div><span class="ai-count">${score} / 4 rätt</span></div>
     <div class="ai-test-grid">${results.map(renderAITestResult).join("")}</div>
     <aside class="ai-improvement"><strong>Så kan du förbättra modellen</strong><p>${getDatasetSuggestion(results)}</p></aside>
-    <div class="ai-test-actions"><button class="secondary-button" type="button" data-ai-action="improve">Förbättra träningsdata</button><button class="primary-button" type="button" data-ai-action="install">Installera i roboten</button></div>
+    <div class="ai-test-actions"><button class="secondary-button" type="button" data-ai-action="improve">Förbättra träningen</button><button class="primary-button" type="button" data-ai-action="install" ${canInstall ? "" : 'disabled title="Minst tre av fyra test behöver bli rätt"'}>Installera modellen</button></div>
   </section>`;
 }
 
@@ -1957,13 +2849,29 @@ function renderAITestResult(result) {
   const item = getAIObject(result.objectId);
   return `<article class="ai-test-card ${result.correct ? "is-correct" : "is-incorrect"}">
     ${renderAIObjectVisual(item, { decorative: true })}<strong>${item.name}</strong>
-    <div class="ai-test-result"><span>AI:n sa: <strong>${formatAICategory(result.predictedLabel)}</strong></span><span>Rätt svar: <strong>${formatAICategory(item.trueCategory)}</strong></span><span>Säkerhetsnivå: <strong>${result.confidenceBand}</strong></span><span class="ai-result-mark ${result.correct ? "is-correct" : "is-incorrect"}">${result.correct ? "Rätt bedömning" : "Fel bedömning"}</span></div>
+    <div class="ai-test-result"><span>Modellen gissade: <strong>${formatAICategory(result.predictedLabel)}</strong></span><span>Rätt svar: <strong>${formatAICategory(item.trueCategory)}</strong></span><span>Gissning: <strong>${result.confidenceBand}</strong></span><span class="ai-result-mark ${result.correct ? "is-correct" : "is-incorrect"}">${result.correct ? "Rätt gissning" : "Fel gissning"}</span></div>
   </article>`;
 }
 
 function renderAIFeatures(item, open = false) {
-  const labels = { shine: "Glans", transparency: "Genomskinlighet", roundness: "Rundhet", blueAmount: "Blå färg", roughness: "Strävhet" };
-  return `<details class="ai-features"${open ? " open" : ""}><summary>Det kameran ser</summary><dl>${AI_FEATURE_KEYS.map((key) => `<div><dt>${labels[key]}</dt><dd>${formatAIFeatureLevel(item.features[key])}</dd></div>`).join("")}</dl></details>`;
+  return `<div class="ai-features" aria-label="Det kameran registrerar"><strong>Det kameran ser</strong>${renderAIPropertyChips(item)}</div>`;
+}
+
+function getAIPropertyLabels(item) {
+  const properties = [];
+  if (item.features.shine >= 0.66) properties.push("blank");
+  else if (item.features.shine <= 0.33) properties.push("matt");
+  if (item.features.transparency >= 0.66) properties.push("genomskinlig");
+  else if (item.features.transparency <= 0.33) properties.push("ogenomskinlig");
+  if (item.features.roundness >= 0.66) properties.push("rund");
+  else if (item.features.roundness <= 0.33) properties.push("kantig");
+  if (item.features.roughness >= 0.66) properties.push("sträv");
+  else if (item.features.roughness <= 0.22) properties.push("slät");
+  return properties.slice(0, 3);
+}
+
+function renderAIPropertyChips(item) {
+  return `<span class="property-chips">${getAIPropertyLabels(item).map((property) => `<span>${property}</span>`).join("")}</span>`;
 }
 
 function renderAIConceptStrip() {
@@ -1971,47 +2879,23 @@ function renderAIConceptStrip() {
     <div class="ai-concept-strip" aria-label="Så samarbetar robotens delar">
       <span><strong>Program</strong><br />ger exakta instruktioner.</span>
       <span><strong>Sensor</strong><br />samlar information.</span>
-      <span><strong>AI</strong><br />bedömer en kategori från exempel.</span>
+      <span><strong>Modell</strong><br />gissar en kategori från exempel.</span>
       <span><strong>Aktuator</strong><br />flyttar föremålet.</span>
     </div>
   `;
 }
 
 function renderAISortingStage() {
-  const sortingObjects = getAIObjectsByGroup("sorting");
-  const current = sortingObjects[state.aiLab.sortingIndex];
-  if (!current) {
-    const score = state.aiLab.sortingResults.filter((result) => result.correct).length;
-    return `<section class="ai-panel ai-complete-card" aria-labelledby="sorting-summary-title"><p class="eyebrow">Sorteringsresultat</p><h2 id="sorting-summary-title">${score} av 3 föremål hamnade rätt</h2><p class="completion-message">Programmet och robotarmen fungerade, men AI-kamerans bedömningar behöver bättre träningsdata.</p><div class="sorting-history">${state.aiLab.sortingResults.map(renderAISortingHistory).join("")}</div><div class="ai-test-actions"><button class="secondary-button" type="button" data-ai-action="improve">Förbättra modellen</button><button class="primary-button" type="button" data-ai-action="restart-sort">Kör sorteringen igen</button></div></section>`;
-  }
-  return `
-    <section class="sorting-console" aria-labelledby="sorting-title">
-      <div class="sorting-stage" id="sorting-stage">
-        <span class="sorting-camera">KAMERA · AI-MODELL</span>
-        <span class="sorting-robot" role="img" aria-label="Samma robot som använder sin kamera och robotarm"></span>
-        ${renderAIObjectVisual(current, { size: "sorting", className: "sorting-object", decorative: true })}
-        <span class="sorting-bin metal">METALL</span>
-        <span class="sorting-bin plastic">PLAST</span>
-      </div>
-      <div class="sorting-controls">
-        <p class="card-kicker">Sorteringsuppdraget</p>
-        <h2 id="sorting-title">Föremål ${state.aiLab.sortingIndex + 1} av ${sortingObjects.length}: ${current.name}</h2>
-        <p>Programmet startar kameran. Sensorn samlar egenskaper. Din AI-modell bedömer materialet. Robotarmen sorterar efter svaret.</p>
-        <div class="sorting-history">
-          ${
-            state.aiLab.sortingResults.length
-              ? state.aiLab.sortingResults.map(renderAISortingHistory).join("")
-              : '<p class="ai-summary-empty">Inga föremål sorterade ännu.</p>'
-          }
-        </div>
-        <button class="primary-button" type="button" data-ai-action="sort" ${state.aiLab.sortingRunning ? "disabled" : ""}>
-          ${state.aiLab.sortingRunning ? "Roboten sorterar…" : "Låt modellen sortera"}
-        </button>
-        <button class="secondary-button" type="button" data-ai-action="improve" ${state.aiLab.sortingRunning ? "disabled" : ""}>Förbättra träningsdata</button>
-        ${renderAIConceptStrip()}
-      </div>
-    </section>
-  `;
+  const missionUnlocked = Boolean(state.bestStars["11"] && state.aiLab.installed);
+  return `<section class="ai-panel ai-installation-card" aria-labelledby="installation-title">
+    <div class="camera-module-visual" aria-hidden="true"><span></span></div>
+    <p class="card-kicker">3 · Använd</p>
+    <h2 id="installation-title">Modellen är installerad</h2>
+    <p>Roboten kan nu använda modellens gissningar i ett uppdrag. Modellen ändras bara när du tränar om den.</p>
+    <div class="ai-concept-contrast"><p><strong>Program</strong> följer reglerna du skriver.</p><p><strong>Modell</strong> jämför med exempel och gör en gissning.</p></div>
+    <p class="mission-requirement">${missionUnlocked ? "Sorteringslinjen är redo." : "Klara Paketvakten för att öppna Sorteringslinjen."}</p>
+    <div class="ai-test-actions"><button class="secondary-button" type="button" data-ai-action="improve">Förbättra träningen</button><button class="primary-button" type="button" data-ai-action="mission" ${missionUnlocked ? "" : "disabled"}>Öppna Sorteringslinjen</button></div>
+  </section>`;
 }
 
 function renderAISortingHistory(result) {
@@ -2024,16 +2908,15 @@ function renderAISortingHistory(result) {
 }
 
 function renderAICompleteStage() {
-  const score = state.aiLab.sortingResults.filter((result) => result.correct).length;
   return `
     <section class="ai-panel ai-complete-card">
       <div class="completion-robot" aria-hidden="true"></div>
       <p class="eyebrow">AI-labbet klart!</p>
-      <h2>Din modell styrde robotens sortering</h2>
-      <p class="completion-message">Roboten sorterade ${score} av 3 föremål rätt med modellen som byggdes av dina märkta exempel.</p>
+      <h2>Programmet och modellen klarade Sorteringslinjen</h2>
+      <p class="completion-message">Tre föremål sorterades rätt med reglerna du skrev och modellen du tränade.</p>
       <div class="learning-card">
         <span aria-hidden="true">💡</span>
-        <p><strong>Det du lärde roboten förändrade spelet.</strong> Programmet startade arbetet, kameran samlade information, AI:n gjorde en bedömning och robotarmen utförde handlingen.</p>
+        <p><strong>Det du lärde roboten förändrade spelet.</strong> Programmet startade arbetet, kameran samlade information, modellen gjorde en gissning och robotarmen utförde handlingen.</p>
       </div>
       <div class="ai-test-actions">
         <button class="secondary-button" type="button" data-ai-action="improve">Träna en ny modell</button>
@@ -2137,6 +3020,7 @@ function invalidateAIModel({ hadModel = state.aiLab.trained || state.aiLab.insta
   resetCurrentAITest();
   state.aiLab.sortingIndex = 0;
   state.aiLab.sortingResults = [];
+  state.signatureState = createSignatureState();
 }
 
 async function trainAIModel() {
@@ -2149,7 +3033,7 @@ async function trainAIModel() {
   const metalCount = labels.filter((label) => label === "metal").length;
   const plasticCount = labels.filter((label) => label === "plastic").length;
   if (metalCount === 0 || plasticCount === 0) {
-    showAIStatus("AI:n behöver exempel på både metall och plast.", "warning");
+    showAIStatus("Modellen behöver exempel märkta som både metall och plast.", "warning");
     return;
   }
   if (metalCount < 2 || plasticCount < 2) {
@@ -2183,7 +3067,7 @@ async function trainAIModel() {
   state.aiLab.sortingResults = [];
   saveProgress();
   renderAILab();
-  showAIStatus("AI-kameran är tränad! Testa hur den bedömer nya föremål.", "success");
+  showAIStatus("Modellen är tränad. Prova hur den gissar på nya föremål.", "success");
 }
 
 function predictAIObject(item, labels = state.aiLab.labels) {
@@ -2195,7 +3079,7 @@ function predictAIObject(item, labels = state.aiLab.labels) {
       distance: calculateAIDistance(example, item),
     }))
     .sort((first, second) => first.distance - second.distance || first.item.id.localeCompare(second.item.id));
-  if (!examples.length) return { objectId: item.id, label: "metal", predictedLabel: "metal", confidence: 0, confidenceBand: "Osäker", neighbors: [] };
+  if (!examples.length) return { objectId: item.id, label: "metal", predictedLabel: "metal", confidence: 0, confidenceBand: "Osäker gissning", neighbors: [] };
   const neighbors = examples.slice(0, Math.min(3, examples.length));
   const votes = { metal: 0, plastic: 0 };
   neighbors.forEach((neighbor) => {
@@ -2247,9 +3131,9 @@ function evaluateAIModel(labels = state.aiLab.labels) {
 }
 
 function getAIConfidenceBand(margin, supportingNeighbors) {
-  if (margin < 0.22 || supportingNeighbors < 2) return "Osäker";
-  if (margin >= 0.55 && supportingNeighbors === 3) return "Säker";
-  return "Ganska säker";
+  if (margin < 0.22 || supportingNeighbors < 2) return "Osäker gissning";
+  if (margin >= 0.55 && supportingNeighbors === 3) return "Stark gissning";
+  return "Ganska säker gissning";
 }
 
 function getAISimilarityDescriptor(distance) {
@@ -2292,7 +3176,7 @@ async function scanCurrentAITest() {
   state.aiLab.scanRunning = false;
   state.aiLab.testScanned = true;
   renderAILab();
-  showAIStatus(`AI:n tror: ${formatAICategoryTitle(state.aiLab.currentPrediction.predictedLabel)}. Säkerhetsnivå: ${state.aiLab.currentPrediction.confidenceBand}.`, "info");
+  showAIStatus(`Modellen gissar ${formatAICategoryTitle(state.aiLab.currentPrediction.predictedLabel)}. ${state.aiLab.currentPrediction.confidenceBand}. En stark gissning kan fortfarande vara fel.`, "info");
   focusAIElement("#ai-prediction-title");
 }
 
@@ -2304,7 +3188,7 @@ function revealCurrentAIFacit() {
   }
   saveProgress();
   renderAILab();
-  showAIStatus(state.aiLab.currentPrediction.correct ? "AI:n bedömde rätt." : "AI:n bedömde fel.", state.aiLab.currentPrediction.correct ? "success" : "warning");
+  showAIStatus(state.aiLab.currentPrediction.correct ? "Modellen gissade rätt." : "Modellen gissade fel.", state.aiLab.currentPrediction.correct ? "success" : "warning");
   focusAIElement("#ai-facit-title");
 }
 
@@ -2330,20 +3214,23 @@ function focusAIElement(selector) {
 }
 
 function getPreRevealExplanation(prediction) {
-  return `De starkast liknande exemplen var märkta som ${formatAICategory(prediction.predictedLabel)}. Därför valde AI:n ${formatAICategory(prediction.predictedLabel)}.`;
+  const mixed = new Set(prediction.neighbors.map((neighbor) => neighbor.assignedLabel)).size > 1;
+  return mixed
+    ? `Exemplen pekade åt olika håll. De sammanlagda likheterna gjorde att modellen gissade ${formatAICategory(prediction.predictedLabel)}.`
+    : `De närmaste exemplen var märkta som ${formatAICategory(prediction.predictedLabel)}. Därför gissade modellen ${formatAICategory(prediction.predictedLabel)}.`;
 }
 
 function getPostRevealFeedback(prediction) {
   const mislabelled = prediction.neighbors.filter((neighbor) => neighbor.assignedLabel !== neighbor.trueCategory);
-  if (mislabelled.length > 1) return "Flera liknande träningskort hade fel märkning. AI:n lärde sig från de märkningarna.";
-  if (mislabelled.length === 1) return `Ett liknande träningskort var märkt som ${formatAICategoryTitle(mislabelled[0].assignedLabel)}. AI:n lär sig från märkningen du gav, även när märkningen blir fel.`;
+  if (mislabelled.length > 1) return "Flera liknande träningskort hade fel märkning. Modellen byggdes av de märkningarna.";
+  if (mislabelled.length === 1) return `Ett liknande träningskort var märkt som ${formatAICategoryTitle(mislabelled[0].assignedLabel)}. Modellen använder märkningen du gav, även när märkningen blir fel.`;
   const mixed = new Set(prediction.neighbors.map((neighbor) => neighbor.assignedLabel)).size > 1;
-  if (prediction.confidenceBand === "Osäker" || prediction.scoreMargin < 0.3) return "Det nya föremålet liknade exempel från båda kategorierna. Därför var AI:n osäker.";
+  if (prediction.confidenceBand === "Osäker gissning" || prediction.scoreMargin < 0.3) return "Det nya föremålet liknade exempel från båda kategorierna. Därför blev gissningen osäker.";
   if (mixed) return "Det nya föremålet liknade exempel från båda kategorierna. De starkaste likheterna avgjorde svaret.";
   const counts = getAssignedLabelCounts();
   const other = prediction.predictedLabel === "metal" ? "plastic" : "metal";
-  if (counts[prediction.predictedLabel] >= counts[other] * 2) return `AI:n fick fler exempel märkta som ${formatAICategory(prediction.predictedLabel)}. Det kan göra att den oftare väljer den kategorin.`;
-  if (hasLowAIVariety(prediction.predictedLabel)) return `Dina ${formatAICategory(prediction.predictedLabel)}exempel liknade varandra mycket. Ett mer annorlunda exempel kan hjälpa AI:n med nya föremål.`;
+  if (counts[prediction.predictedLabel] >= counts[other] * 2) return `Modellen fick fler exempel märkta som ${formatAICategory(prediction.predictedLabel)}. Det kan göra att den oftare väljer den kategorin.`;
+  if (hasLowAIVariety(prediction.predictedLabel)) return `Dina ${formatAICategory(prediction.predictedLabel)}exempel liknade varandra mycket. Ett mer annorlunda exempel kan hjälpa modellen med nya föremål.`;
   return prediction.correct
     ? "De mest liknande träningsexemplen pekade tydligt mot rätt kategori."
     : "Träningsexemplen pekade mot fel kategori för det här föremålet. Försök välja mer varierade exempel och träna igen.";
@@ -2362,11 +3249,11 @@ function hasLowAIVariety(label) {
 
 function getDatasetSuggestion(results) {
   const selected = getAIObjectsByGroup("training").filter((item) => state.aiLab.labels[item.id]);
-  if (selected.some((item) => state.aiLab.labels[item.id] !== item.trueCategory)) return "Kontrollera märkningarna. Ett felmärkt kort kan lära AI:n fel.";
+  if (selected.some((item) => state.aiLab.labels[item.id] !== item.trueCategory)) return "Kontrollera märkningarna. Ett felmärkt kort kan styra modellen åt fel håll.";
   const counts = getAssignedLabelCounts();
   if (Math.max(counts.metal, counts.plastic) >= Math.min(counts.metal, counts.plastic) * 2) return "Prova en jämnare blandning av metallexempel och plastexempel.";
   if (hasLowAIVariety("metal") || hasLowAIVariety("plastic")) return "Byt ut ett mycket likt kort mot ett exempel som ser annorlunda ut.";
-  if (results.filter((result) => result.confidenceBand === "Osäker").length >= 2) return "AI:n var osäker flera gånger. Mer varierade exempel kan göra skillnaden tydligare.";
+  if (results.filter((result) => result.confidenceBand === "Osäker gissning").length >= 2) return "Modellen gav flera osäkra gissningar. Mer varierade exempel kan göra skillnaden tydligare.";
   return "Din modell fungerade bra. Testa att byta ett exempel och se hur resultatet förändras.";
 }
 
@@ -2391,6 +3278,10 @@ function createAITrainingSignature(labels) {
 
 function installAIModel() {
   if (!state.aiLab.trained || state.aiLab.testResults.length !== getAIObjectsByGroup("testing").length) return;
+  if (state.aiLab.testResults.filter((result) => result.correct).length < 3) {
+    showAIStatus("Minst tre av fyra test behöver bli rätt innan modellen kan installeras.", "warning");
+    return;
+  }
   if (state.aiLab.trainingSignature !== createAITrainingSignature(state.aiLab.labels)) {
     showAIStatus("Träningsdatan har ändrats. Träna modellen igen.", "warning");
     return;
@@ -2402,7 +3293,12 @@ function installAIModel() {
   state.aiLab.sortingResults = [];
   saveProgress();
   renderAILab();
-  showAIStatus("Modellen är installerad i robotens kamera.", "success");
+  showAIStatus("Modellen är installerad. Roboten kan nu använda dess gissningar i ett uppdrag.", "success");
+  if (state.returnToSignature && state.bestStars["11"]) {
+    state.returnToSignature = false;
+    openLevel(LEVELS.findIndex((level) => level.signature));
+    showStatus("Programmet är bevarat. Kör uppdraget med den nya installerade modellen.", "success");
+  }
 }
 
 async function runAISortingStep() {
@@ -2425,7 +3321,7 @@ async function runAISortingStep() {
   if (runId !== state.aiLab.runId) return;
   const prediction = predictAIObject(item);
   elements.aiLabContent.querySelector("#sorting-stage")?.classList.add(`sort-${prediction.label}`);
-  showAIStatus(`AI:n bedömer ${formatAICategory(prediction.label)}. Robotarmen sorterar.`, "info");
+  showAIStatus(`Modellen gissar ${formatAICategory(prediction.label)}. Robotarmen sorterar efter gissningen.`, "info");
   await wait(prefersReducedMotion() ? 0 : 720);
   if (runId !== state.aiLab.runId) return;
   state.aiLab.sortingResults.push({
@@ -2492,11 +3388,11 @@ function formatAICategory(label) {
 
 // ----- Completion -----------------------------------------------------------
 
-function showCompletionDialog(stars) {
+function showCompletionDialog(stars, mastery = evaluateMasteryCriteria(getCurrentLevel())) {
   const level = getCurrentLevel();
-  const isFinalLevel = level.id === LEVELS.length;
+  const isFinalLevel = level.signature;
   elements.completionTitle.textContent = isFinalLevel
-    ? "Robotlaboratoriet klart!"
+    ? "Sorteringslinjen klar!"
     : "Snyggt programmerat!";
   elements.completionStars.innerHTML = renderStarsHtml(stars);
   elements.completionStars.setAttribute(
@@ -2504,12 +3400,19 @@ function showCompletionDialog(stars) {
     `${stars} ${stars === 1 ? "stjärna" : "stjärnor"} av 3`,
   );
   elements.completionMessage.textContent = isFinalLevel
-    ? "AI-labbet har öppnat! Nu kan du träna robotens kamera med egna exempel."
+    ? "Programmet följde dina regler och modellen gjorde gissningarna. Båda delarna behövde fungera."
+    : level.id === 11
+      ? state.aiLab.installed
+        ? "Sorteringslinjen är upplåst. Din installerade modell kan nu användas i robotens program."
+        : "Villkorskapitlet är klart. Träna och installera AI-kameran för att öppna Sorteringslinjen."
+    : level.id === 8
+      ? "Roboten reagerar och AI-labbet har öppnat parallellt."
     : level.id === 6
       ? "Robotlaboratoriet har öppnat! Nu väntar loopar och robotarmar."
       : level.successMessage ||
         `Du klarade ${level.title} med ${countAuthoredBlocks(state.programCommands)} instruktioner.`;
   elements.completionLearning.textContent = level.learning;
+  elements.completionCriteria.innerHTML = level.mastery.map((criterion, index) => `<li class="${mastery[index] ? "is-earned" : ""}"><span aria-hidden="true">${mastery[index] ? "★" : "☆"}</span>${criterion}</li>`).join("");
   elements.nextLevelButton.textContent = isFinalLevel ? "Till uppdragskartan" : "Nästa uppdrag →";
   if (!elements.completionDialog.open) elements.completionDialog.showModal();
 }
@@ -2526,7 +3429,7 @@ function retryCurrentLevel() {
 function goToNextLevel() {
   const currentLevel = getCurrentLevel();
   closeCompletionDialog();
-  if (currentLevel.id >= LEVELS.length) {
+  if (currentLevel.signature || (currentLevel.id === 11 && !isLevelUnlocked(LEVELS[11]))) {
     showScreen("level");
     return;
   }
@@ -2629,6 +3532,7 @@ function bindEvents() {
     if (action === "next-test") advanceAITest();
     if (action === "sort") runAISortingStep();
     if (action === "restart-sort") restartAISorting();
+    if (action === "mission") openLevel(LEVELS.findIndex((level) => level.signature));
     if (action === "levels") showScreen("level");
 
     const candidate = event.target.closest("[data-ai-candidate]");
@@ -2646,6 +3550,21 @@ function bindEvents() {
   elements.sensorTipDismiss.addEventListener("click", dismissSensorIntro);
 
   elements.programList.addEventListener("click", (event) => {
+    const branchAddButton = event.target.closest("[data-branch-add]");
+    if (branchAddButton) {
+      const item = branchAddButton.closest("[data-command-index]");
+      const branchSection = branchAddButton.closest("[data-branch]");
+      if (item && branchSection) addBranchCommand(Number(item.dataset.commandIndex), branchSection.dataset.branch, branchAddButton.dataset.branchAdd);
+      return;
+    }
+    const branchRemoveButton = event.target.closest(".remove-branch-command");
+    if (branchRemoveButton) {
+      const item = branchRemoveButton.closest("[data-command-index]");
+      const branchSection = branchRemoveButton.closest("[data-branch]");
+      const branchItem = branchRemoveButton.closest("[data-branch-index]");
+      if (item && branchSection && branchItem) removeBranchCommand(Number(item.dataset.commandIndex), branchSection.dataset.branch, Number(branchItem.dataset.branchIndex));
+      return;
+    }
     const nestedAddButton = event.target.closest("[data-nested-command]");
     if (nestedAddButton) {
       const item = nestedAddButton.closest("[data-command-index]");
@@ -2676,6 +3595,30 @@ function bindEvents() {
   elements.clearProgramButton.addEventListener("click", clearProgram);
   elements.resetLevelButton.addEventListener("click", () => initializeLevel({ keepProgram: true }));
   elements.runProgramButton.addEventListener("click", runProgram);
+  elements.traceStartButton.addEventListener("click", startTraceMode);
+  elements.traceNextButton.addEventListener("click", runNextTraceStep);
+  elements.traceRunButton.addEventListener("click", runTraceToEnd);
+  elements.traceRewindButton.addEventListener("click", rewindTrace);
+  elements.traceExitButton.addEventListener("click", exitTraceMode);
+  elements.hintButton.addEventListener("click", revealHint);
+  elements.nextHintButton.addEventListener("click", revealHint);
+  elements.hintCloseButton.addEventListener("click", () => { elements.hintPanel.hidden = true; });
+  elements.masteryToggle.addEventListener("click", toggleMasteryCriteria);
+  elements.predictionSkip.addEventListener("click", () => { state.prediction.skipped = true; renderPredictionPrompt(); });
+  elements.predictionOptions.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-prediction]");
+    if (option) choosePrediction(option.dataset.prediction);
+  });
+  elements.signatureFeedback.addEventListener("click", (event) => {
+    const action = event.target.closest("[data-signature-action]")?.dataset.signatureAction;
+    if (action === "improve") improveTrainingFromMission();
+    if (action === "trace") {
+      if (!state.executionState.traceMode) state.executionState.traceMode = true;
+      renderTracePanel();
+      elements.traceRewindButton.focus();
+    }
+    if (action === "continue") continueSignatureAttempt();
+  });
 
   elements.retryLevelButton.addEventListener("click", retryCurrentLevel);
   elements.nextLevelButton.addEventListener("click", goToNextLevel);

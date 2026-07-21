@@ -34,7 +34,7 @@
             <p class="eyebrow">Välkommen till verkstan!</p>
             <h1 id="start-title">Bygg program.<br /><span>Få roboten i mål.</span></h1>
             <p class="hero-text">
-              Programmera roboten, lös åtta kluriga uppdrag och upptäck hur teknik fungerar.
+              Programmera roboten, felsök steg för steg och upptäck hur regler, sensorer och AI fungerar.
             </p>
             <div class="hero-actions">
               <button class="primary-button large-button" id="start-button" type="button">
@@ -82,7 +82,7 @@
               <h1 id="level-select-title">Välj ett uppdrag</h1>
               <p>Varje uppdrag lär roboten – och dig – något nytt.</p>
             </div>
-            <div class="progress-badge" id="progress-badge" aria-live="polite">0 av 8 klara</div>
+            <div class="progress-badge" id="progress-badge" aria-live="polite">0 av 12 klara</div>
           </div>
 
           <div class="level-grid" id="level-grid" aria-label="Tillgängliga uppdrag"></div>
@@ -101,7 +101,7 @@
               <span aria-hidden="true">←</span> Uppdrag
             </button>
             <div class="level-progress">
-              <span id="level-progress-text">Nivå 1 av 8</span>
+              <span id="level-progress-text">Nivå 1 av 11</span>
               <div class="progress-track" aria-hidden="true"><span id="level-progress-fill"></span></div>
             </div>
           </div>
@@ -163,6 +163,24 @@
                 </div>
               </div>
 
+              <section class="mastery-panel" id="mastery-panel" aria-labelledby="mastery-title">
+                <div class="compact-panel-heading">
+                  <h3 id="mastery-title">Stjärnor i uppdraget</h3>
+                  <button class="panel-toggle" id="mastery-toggle" type="button" aria-expanded="false" aria-controls="mastery-criteria">Visa</button>
+                </div>
+                <ul id="mastery-criteria" hidden></ul>
+              </section>
+
+              <section class="prediction-panel" id="prediction-panel" aria-labelledby="prediction-title" hidden>
+                <div class="compact-panel-heading">
+                  <h3 id="prediction-title">Din förutsägelse</h3>
+                  <button class="panel-skip" id="prediction-skip" type="button">Hoppa över</button>
+                </div>
+                <p id="prediction-question"></p>
+                <div class="prediction-options" id="prediction-options"></div>
+                <p class="prediction-result" id="prediction-result" role="status" aria-live="polite"></p>
+              </section>
+
               <div class="command-section">
                 <p class="control-label">Lägg till instruktion</p>
                 <div class="sensor-tip" id="sensor-tip" hidden>
@@ -185,6 +203,39 @@
                   <span aria-hidden="true">↺</span> Börja om
                 </button>
               </div>
+
+              <div class="debug-launch-row">
+                <button class="secondary-button trace-start-button" id="trace-start-button" type="button">Starta spårläge</button>
+                <button class="small-button hint-button" id="hint-button" type="button">Visa ledtråd</button>
+              </div>
+
+              <section class="trace-panel" id="trace-panel" aria-labelledby="trace-title" hidden>
+                <div class="compact-panel-heading">
+                  <div>
+                    <p class="card-kicker">Felsökning</p>
+                    <h3 id="trace-title">Spårläge</h3>
+                  </div>
+                  <span class="trace-position" id="trace-position">Redo</span>
+                </div>
+                <p class="trace-description" id="trace-description" role="status" aria-live="polite">Tryck på Nästa steg för att följa programmet.</p>
+                <div class="trace-controls">
+                  <button class="primary-button" id="trace-next-button" type="button">Nästa steg</button>
+                  <button class="secondary-button" id="trace-run-button" type="button">Kör klart</button>
+                  <button class="secondary-button" id="trace-rewind-button" type="button" disabled>Spola tillbaka</button>
+                  <button class="text-button" id="trace-exit-button" type="button">Avsluta spårläge</button>
+                </div>
+              </section>
+
+              <section class="hint-panel" id="hint-panel" aria-labelledby="hint-title" hidden>
+                <div class="compact-panel-heading">
+                  <h3 id="hint-title">Ledtråd 1 av 3</h3>
+                  <button class="close-panel-button" id="hint-close-button" type="button" aria-label="Stäng ledtråden">×</button>
+                </div>
+                <p id="hint-text"></p>
+                <button class="secondary-button" id="next-hint-button" type="button">Visa nästa ledtråd</button>
+              </section>
+
+              <section class="signature-feedback" id="signature-feedback" aria-live="polite" hidden></section>
 
               <button class="run-button" id="run-program-button" type="button">
                 <span class="run-icon" aria-hidden="true">▶</span>
@@ -258,6 +309,7 @@
         <span class="learn-icon" aria-hidden="true"></span>
         <p><strong>Du lärde dig:</strong> <span id="completion-learning"></span></p>
       </div>
+      <ul class="completion-criteria" id="completion-criteria"></ul>
       <div class="completion-actions">
         <button class="primary-button" id="next-level-button" type="button">Nästa uppdrag →</button>
         <button class="secondary-button" id="retry-level-button" type="button">Spela igen</button>
