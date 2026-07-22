@@ -857,9 +857,6 @@ function createDefaultAILabState() {
     currentPrediction: null,
     testResults: [],
     scanRunning: false,
-    sortingIndex: 0,
-    sortingResults: [],
-    sortingRunning: false,
     runId: 0,
   };
 }
@@ -888,38 +885,49 @@ function sanitizeAILab(value) {
     && signatureMatches
     && !clean.modelOutdated;
   const testObjects = getAIObjectsByGroup("testing");
-  const savedTestComplete = Array.isArray(value.testResults)
-    && value.testResults.length === testObjects.length
+  const savedTestResultsValid = Array.isArray(value.testResults)
+    && value.testResults.length <= testObjects.length
     && value.testResults.every((result, index) =>
       result
       && result.objectId === testObjects[index].id
       && ["metal", "plastic"].includes(result.predictedLabel)
       && typeof result.correct === "boolean"
       && ["Osäker", "Ganska säker", "Säker", "Osäker gissning", "Ganska säker gissning", "Stark gissning"].includes(result.confidenceBand));
-  if (clean.trained && (savedTestComplete || value.installed || value.completed)) {
-    clean.testResults = evaluateAIModel(clean.labels);
-    clean.testIndex = clean.testResults.length;
+  if (clean.trained && (savedTestResultsValid || value.installed || value.completed)) {
+    const evaluatedResults = evaluateAIModel(clean.labels);
+    const savedResultCount = value.installed || value.completed
+      ? testObjects.length
+      : savedTestResultsValid
+        ? value.testResults.length
+        : 0;
+    clean.testResults = evaluatedResults.slice(0, savedResultCount);
+    const savedTestIndex = clampNumber(value.testIndex, 0, testObjects.length, savedResultCount);
+    if (savedResultCount === testObjects.length) {
+      clean.testIndex = testObjects.length;
+    } else if (savedTestIndex === savedResultCount) {
+      clean.testIndex = savedTestIndex;
+      clean.testScanned = Boolean(value.testScanned) && !value.testRevealed;
+    } else if (savedTestIndex + 1 === savedResultCount && value.testScanned && value.testRevealed) {
+      clean.testIndex = savedTestIndex;
+      clean.testScanned = true;
+      clean.testRevealed = true;
+    } else {
+      clean.testIndex = savedResultCount;
+    }
+    if (clean.testScanned) clean.currentPrediction = evaluatedResults[clean.testIndex] || null;
   }
   clean.installed = Boolean(value.installed) && clean.trained && clean.testResults.length === 4 && (!savedInstalledSignature || savedInstalledSignature === currentSignature);
   if (clean.installed && !clean.installedSignature) clean.installedSignature = currentSignature;
   clean.hasSeenIntro = Boolean(value.hasSeenIntro);
-  const sortingCount = clampNumber(value.sortingIndex, 0, getAIObjectsByGroup("sorting").length, 0);
-  clean.sortingIndex = clean.installed ? sortingCount : 0;
-  clean.stage = clean.completed ? "complete" : clean.installed ? "sorting" : clean.trained ? "testing" : "training";
-  if (clean.installed) {
-    clean.sortingResults = getAIObjectsByGroup("sorting")
-      .slice(0, clean.sortingIndex)
-      .map((item) => {
-        const prediction = predictAIObject(item, clean.labels);
-        return {
-          item,
-          predictedLabel: prediction.label,
-          correct: prediction.label === item.trueCategory,
-        };
-      });
-  }
   clean.completed = Boolean(value.completed) && clean.installed;
-  clean.stage = clean.completed ? "complete" : clean.installed ? "sorting" : clean.trained ? "testing" : "training";
+  const savedTrainingStage = value.stage === "training";
+  clean.stage = clean.completed
+    ? "complete"
+    : clean.installed
+      ? savedTrainingStage ? "training" : "sorting"
+      : clean.trained
+        ? savedTrainingStage ? "training" : "testing"
+        : "training";
   return clean;
 }
 
@@ -933,15 +941,16 @@ function getPersistentAILabState() {
     modelOutdated: state.aiLab.modelOutdated,
     completed: state.aiLab.completed,
     hasSeenIntro: state.aiLab.hasSeenIntro,
-    testResults: state.aiLab.testResults.length === getAIObjectsByGroup("testing").length
-      ? state.aiLab.testResults.map((result) => ({
-          objectId: result.objectId,
-          predictedLabel: result.predictedLabel,
-          correct: result.correct,
-          confidenceBand: result.confidenceBand,
-        }))
-      : [],
-    sortingIndex: state.aiLab.sortingIndex,
+    stage: state.aiLab.stage,
+    testIndex: state.aiLab.testIndex,
+    testScanned: state.aiLab.testScanned,
+    testRevealed: state.aiLab.testRevealed,
+    testResults: state.aiLab.testResults.map((result) => ({
+      objectId: result.objectId,
+      predictedLabel: result.predictedLabel,
+      correct: result.correct,
+      confidenceBand: result.confidenceBand,
+    })),
   };
 }
 
@@ -2736,22 +2745,74 @@ function renderAILab() {
 
   const intro = state.aiLab.hasSeenIntro ? "" : renderAILabIntroduction();
   if (state.aiLab.training) {
-    elements.aiLabContent.innerHTML = `${intro}${renderAITrainingProgress()}`;
+    renderAILabContent(`${intro}${renderAITrainingProgress()}`);
     return;
   }
   if (state.aiLab.stage === "testing") {
-    elements.aiLabContent.innerHTML = `${intro}${renderAITestStage()}`;
+    renderAILabContent(`${intro}${renderAITestStage()}`);
     return;
   }
   if (state.aiLab.stage === "sorting") {
-    elements.aiLabContent.innerHTML = `${intro}${renderAISortingStage()}`;
+    renderAILabContent(`${intro}${renderAISortingStage()}`);
     return;
   }
   if (state.aiLab.stage === "complete") {
-    elements.aiLabContent.innerHTML = `${intro}${renderAICompleteStage()}`;
+    renderAILabContent(`${intro}${renderAICompleteStage()}`);
     return;
   }
-  elements.aiLabContent.innerHTML = `${intro}${renderAITrainingStage()}`;
+  renderAILabContent(`${intro}${renderAITrainingStage()}`);
+}
+
+function renderAILabContent(content) {
+  elements.aiLabContent.innerHTML = content;
+  restoreAILabStatus();
+}
+
+function restoreAILabStatus() {
+  const testCount = getAIObjectsByGroup("testing").length;
+  if (state.aiLab.training) {
+    showAIStatus(state.aiLab.trainingStep || "AI-kameran tränas…", "info");
+    return;
+  }
+  if (state.aiLab.stage === "complete") {
+    showAIStatus("AI-labbet är klart. Modellen och programmet klarade Sorteringslinjen.", "success");
+    return;
+  }
+  if (state.aiLab.stage === "sorting") {
+    showAIStatus("Modellen är installerad. Öppna Sorteringslinjen för att använda den.", "success");
+    return;
+  }
+  if (state.aiLab.stage === "testing") {
+    if (state.aiLab.testResults.length === testCount && state.aiLab.testIndex >= testCount) {
+      const score = state.aiLab.testResults.filter((result) => result.correct).length;
+      showAIStatus(`Alla fyra tester är klara. Modellen fick ${score} av 4 rätt.`, score >= 3 ? "success" : "warning");
+    } else if (state.aiLab.scanRunning) {
+      showAIStatus("AI-kameran undersöker föremålet…", "info");
+    } else if (state.aiLab.testRevealed && state.aiLab.currentPrediction) {
+      showAIStatus(state.aiLab.currentPrediction.correct ? "Modellen gissade rätt. Gå vidare när du är redo." : "Modellen gissade fel. Gå vidare när du är redo.", state.aiLab.currentPrediction.correct ? "success" : "warning");
+    } else if (state.aiLab.testScanned && state.aiLab.currentPrediction) {
+      showAIStatus(`Modellen gissar ${formatAICategoryTitle(state.aiLab.currentPrediction.predictedLabel)}. ${state.aiLab.currentPrediction.confidenceBand}.`, "info");
+    } else {
+      showAIStatus(`Test ${state.aiLab.testIndex + 1} av ${testCount}. Skanna föremålet när du är redo.`, "info");
+    }
+    return;
+  }
+  if (state.aiLab.modelOutdated) {
+    showAIStatus("Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den.", "warning");
+    return;
+  }
+  const selectedCount = Object.keys(state.aiLab.labels).length;
+  if (state.aiLab.installed) {
+    showAIStatus("Modellen är installerad. Ändra ett träningskort om du vill bygga en ny modell.", "info");
+  } else if (state.aiLab.trained) {
+    showAIStatus("Modellen är tränad. Ändra ett träningskort om du vill bygga en ny modell.", "info");
+  } else if (selectedCount === 0) {
+    showAIStatus("Välj träningskort för att börja.", "info");
+  } else if (selectedCount < 6) {
+    showAIStatus(`${selectedCount} av 6 träningskort är märkta.`, "info");
+  } else {
+    showAIStatus("Sex träningskort är märkta. Träna AI-kameran när du är redo.", "info");
+  }
 }
 
 function renderAILabIntroduction() {
@@ -2822,7 +2883,7 @@ function renderAIModelOutdatedNotice() {
   return `
     <section class="ai-model-outdated" role="status" aria-labelledby="ai-model-outdated-title">
       <h3 id="ai-model-outdated-title">Modellen behöver tränas igen</h3>
-      <p>Du har ändrat träningskorten. Den gamla modellen använder fortfarande de tidigare exemplen.</p>
+      <p>Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den.</p>
     </section>
   `;
 }
@@ -3029,17 +3090,6 @@ function renderAIPropertyChips(item) {
   return `<span class="property-chips">${getAIPropertyLabels(item).map((property) => `<span>${property}</span>`).join("")}</span>`;
 }
 
-function renderAIConceptStrip() {
-  return `
-    <div class="ai-concept-strip" aria-label="Så samarbetar robotens delar">
-      <span><strong>Program</strong><br />ger exakta instruktioner.</span>
-      <span><strong>Sensor</strong><br />samlar information.</span>
-      <span><strong>Modell</strong><br />gissar en kategori från exempel.</span>
-      <span><strong>Aktuator</strong><br />flyttar föremålet.</span>
-    </div>
-  `;
-}
-
 function renderAISortingStage() {
   const missionUnlocked = demoState.unlockAll || Boolean(state.bestStars["11"] && state.aiLab.installed);
   return `<section class="ai-panel ai-installation-card" aria-labelledby="installation-title">
@@ -3051,15 +3101,6 @@ function renderAISortingStage() {
     <p class="mission-requirement">${missionUnlocked ? "Sorteringslinjen är redo." : "Klara Paketvakten för att öppna Sorteringslinjen."}</p>
     <div class="ai-test-actions"><button class="secondary-button" type="button" data-ai-action="improve">Förbättra träningen</button><button class="primary-button" type="button" data-ai-action="mission" ${missionUnlocked ? "" : "disabled"}>Öppna Sorteringslinjen</button></div>
   </section>`;
-}
-
-function renderAISortingHistory(result) {
-  return `
-    <div class="sorting-history-item">
-      <span class="sorting-history-label">${renderAIObjectVisual(result.item, { size: "history", decorative: true })}<span>${result.item.name}</span></span>
-      <strong>${formatAICategory(result.predictedLabel)} ${result.correct ? "✓" : "· fel"}</strong>
-    </div>
-  `;
 }
 
 function renderAICompleteStage() {
@@ -3136,7 +3177,7 @@ function labelAITrainingObject(id, label) {
   renderAILab();
   showAIStatus(
     hadInstalledModel
-      ? "Träningsdatan har ändrats. Den installerade AI-modellen är nu gammal. Träna och testa modellen igen."
+      ? "Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den."
       : hadTrainedModel
         ? "Träningsdatan har ändrats. Träna modellen igen."
         : `${getAIObject(id).name} märktes som ${formatAICategory(label)}.`,
@@ -3155,7 +3196,7 @@ function removeAITrainingObject(id) {
   renderAILab();
   showAIStatus(
     hadInstalledModel
-      ? "Träningsdatan har ändrats. Den installerade AI-modellen är nu gammal. Träna och testa modellen igen."
+      ? "Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den."
       : hadTrainedModel
         ? "Träningsdatan har ändrats. Träna modellen igen."
         : "Kortet togs bort från träningssamlingen.",
@@ -3173,8 +3214,6 @@ function invalidateAIModel({ hadModel = state.aiLab.trained || state.aiLab.insta
   state.aiLab.stage = "training";
   state.aiLab.testResults = [];
   resetCurrentAITest();
-  state.aiLab.sortingIndex = 0;
-  state.aiLab.sortingResults = [];
   state.signatureState = createSignatureState();
 }
 
@@ -3218,8 +3257,6 @@ async function trainAIModel() {
   state.aiLab.stage = "testing";
   state.aiLab.testResults = [];
   resetCurrentAITest();
-  state.aiLab.sortingIndex = 0;
-  state.aiLab.sortingResults = [];
   saveProgress();
   renderAILab();
   showAIStatus("Modellen är tränad. Prova hur den gissar på nya föremål.", "success");
@@ -3297,12 +3334,6 @@ function getAISimilarityDescriptor(distance) {
   return "Lite lik";
 }
 
-function formatAIFeatureLevel(value) {
-  if (value < 1 / 3) return "Låg";
-  if (value < 2 / 3) return "Medel";
-  return "Hög";
-}
-
 function formatAICategoryTitle(label) {
   const category = formatAICategory(label);
   return category.charAt(0).toUpperCase() + category.slice(1);
@@ -3330,6 +3361,7 @@ async function scanCurrentAITest() {
   if (runId !== state.aiLab.runId || state.currentScreen !== "ai-lab") return;
   state.aiLab.scanRunning = false;
   state.aiLab.testScanned = true;
+  saveProgress();
   renderAILab();
   showAIStatus(`Modellen gissar ${formatAICategoryTitle(state.aiLab.currentPrediction.predictedLabel)}. ${state.aiLab.currentPrediction.confidenceBand}. En stark gissning kan fortfarande vara fel.`, "info");
   focusAIElement("#ai-prediction-title");
@@ -3417,7 +3449,6 @@ function returnToAITraining() {
   state.aiLab.stage = "training";
   state.aiLab.training = false;
   state.aiLab.scanRunning = false;
-  state.aiLab.sortingRunning = false;
   state.aiLab.activeCandidateId = null;
   saveProgress();
   renderAILab();
@@ -3444,8 +3475,6 @@ function installAIModel() {
   state.aiLab.installed = true;
   state.aiLab.installedSignature = state.aiLab.trainingSignature;
   state.aiLab.stage = "sorting";
-  state.aiLab.sortingIndex = 0;
-  state.aiLab.sortingResults = [];
   saveProgress();
   renderAILab();
   showAIStatus("Modellen är installerad. Roboten kan nu använda dess gissningar i ett uppdrag.", "success");
@@ -3454,53 +3483,6 @@ function installAIModel() {
     openLevel(LEVELS.findIndex((level) => level.signature));
     showStatus("Programmet är bevarat. Kör uppdraget med den nya installerade modellen.", "success");
   }
-}
-
-async function runAISortingStep() {
-  if (!state.aiLab.installed || state.aiLab.sortingRunning) return;
-  if (state.aiLab.installedSignature !== createAITrainingSignature(state.aiLab.labels)) {
-    invalidateAIModel({ hadModel: true });
-    saveProgress();
-    renderAILab();
-    showAIStatus("Träningsdatan har ändrats. Den installerade AI-modellen är nu gammal. Träna och testa modellen igen.", "warning");
-    return;
-  }
-  const item = getAIObjectsByGroup("sorting")[state.aiLab.sortingIndex];
-  if (!item) return;
-  state.aiLab.sortingRunning = true;
-  state.aiLab.runId += 1;
-  const runId = state.aiLab.runId;
-  renderAILab();
-  showAIStatus("Kameran samlar egenskaper och modellen jämför exempel…", "info");
-  await wait(prefersReducedMotion() ? 0 : 500);
-  if (runId !== state.aiLab.runId) return;
-  const prediction = predictAIObject(item);
-  elements.aiLabContent.querySelector("#sorting-stage")?.classList.add(`sort-${prediction.label}`);
-  showAIStatus(`Modellen gissar ${formatAICategory(prediction.label)}. Robotarmen sorterar efter gissningen.`, "info");
-  await wait(prefersReducedMotion() ? 0 : 720);
-  if (runId !== state.aiLab.runId) return;
-  state.aiLab.sortingResults.push({
-    item,
-    predictedLabel: prediction.label,
-    correct: prediction.label === item.trueCategory,
-  });
-  state.aiLab.sortingIndex += 1;
-  state.aiLab.sortingRunning = false;
-  if (state.aiLab.sortingIndex >= getAIObjectsByGroup("sorting").length) {
-    const allCorrect = state.aiLab.sortingResults.every((result) => result.correct);
-    state.aiLab.completed = allCorrect;
-    state.aiLab.stage = allCorrect ? "complete" : "sorting";
-  }
-  saveProgress();
-  renderAILab();
-  showAIStatus(
-    state.aiLab.completed
-      ? "Alla föremål sorterades rätt! AI-labbet är klart."
-      : state.aiLab.sortingIndex >= getAIObjectsByGroup("sorting").length
-        ? "Sorteringen är klar, men modellen behöver förbättras för att klara hela uppdraget."
-        : "Föremålet är sorterat. Nästa föremål väntar.",
-    state.aiLab.completed ? "success" : "warning",
-  );
 }
 
 function dismissAIIntroduction() {
@@ -3513,19 +3495,7 @@ function cancelAILabProcess() {
   if (!state.aiLab) return;
   state.aiLab.runId += 1;
   state.aiLab.training = false;
-  state.aiLab.sortingRunning = false;
   state.aiLab.scanRunning = false;
-}
-
-function restartAISorting() {
-  if (!state.aiLab.installed || state.aiLab.sortingRunning) return;
-  state.aiLab.sortingIndex = 0;
-  state.aiLab.sortingResults = [];
-  state.aiLab.completed = false;
-  state.aiLab.stage = "sorting";
-  saveProgress();
-  renderAILab();
-  showAIStatus("Sorteringen startar om med den installerade modellen.", "info");
 }
 
 function showAIStatus(message, type = "info") {
@@ -3686,8 +3656,6 @@ function bindEvents() {
     if (action === "scan") scanCurrentAITest();
     if (action === "reveal") revealCurrentAIFacit();
     if (action === "next-test") advanceAITest();
-    if (action === "sort") runAISortingStep();
-    if (action === "restart-sort") restartAISorting();
     if (action === "mission") openLevel(LEVELS.findIndex((level) => level.signature));
     if (action === "levels") showScreen("level");
 
@@ -3796,7 +3764,7 @@ function bindEvents() {
       initializeLevel({ keepProgram: true });
       showStatus("Körningen stoppades. Programmet finns kvar.", "info");
     }
-    if (event.key === "Escape" && state.currentScreen === "ai-lab" && (state.aiLab.training || state.aiLab.sortingRunning)) {
+    if (event.key === "Escape" && state.currentScreen === "ai-lab" && state.aiLab.training) {
       cancelAILabProcess();
       renderAILab();
       showAIStatus("Arbetet stoppades. Dina träningskort finns kvar.", "info");
