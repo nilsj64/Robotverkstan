@@ -331,151 +331,28 @@ LEVELS[8].prediction = { question: "Vad händer när sensorn hittar ett hinder?"
 LEVELS[11].prediction = { question: "Vilken station väljer modellen för första föremålet?", options: ["Metall", "Plast"] };
 
 const AI_FEATURE_KEYS = ["shine", "transparency", "roundness", "blueAmount", "roughness"];
+const AI_DATASET_VERSION = 2;
 const AI_OBJECTS = [
-  createAIObject("m1", "Blank konservburk", "metal", "training", {
-    type: "can",
-    variant: "tall",
-    accent: "silver",
-    detail: "highlight-ridges",
-    background: "#eef1f6",
-  }, {
-    shine: 0.9, transparency: 0.05, roundness: 0.75, blueAmount: 0.15, roughness: 0.15,
-  }, "En blank, rund konservburk."),
-  createAIObject("m2", "Matt verkstadsburk", "metal", "training", {
-    type: "can",
-    variant: "short",
-    accent: "graphite",
-    detail: "matte-dots",
-    background: "#e5e8ed",
-  }, {
-    shine: 0.3, transparency: 0.05, roundness: 0.75, blueAmount: 0.12, roughness: 0.55,
-  }, "En matt, rund burk med skrovlig yta."),
-  createAIObject("m3", "Målad verktygsask", "metal", "training", {
-    type: "box",
-    variant: "handle",
-    accent: "blue",
-    detail: "panel-line",
-    background: "#dbe5ff",
-  }, {
-    shine: 0.55, transparency: 0.05, roundness: 0.25, blueAmount: 0.65, roughness: 0.25,
-  }, "En blåmålad, kantig ask."),
-  createAIObject("m4", "Skruv", "metal", "training", {
-    type: "screw",
-    variant: "flat-head",
-    accent: "steel",
-    detail: "thread",
-    background: "#eceef3",
-  }, {
-    shine: 0.72, transparency: 0, roundness: 0.2, blueAmount: 0.08, roughness: 0.7,
-  }, "En blank skruv med räfflad yta."),
-  createAIObject("m5", "Rund bricka", "metal", "training", {
-    type: "washer",
-    variant: "wide",
-    accent: "silver",
-    detail: "inner-ring",
-    background: "#f0f2f6",
-  }, {
-    shine: 0.82, transparency: 0, roundness: 0.9, blueAmount: 0.05, roughness: 0.25,
-  }, "En blank och rund bricka."),
-  createAIObject("m6", "Verkstadslock", "metal", "training", {
-    type: "lid",
-    variant: "domed",
-    accent: "tin",
-    detail: "tab",
-    background: "#e8ebf0",
-  }, {
-    shine: 0.68, transparency: 0.03, roundness: 0.92, blueAmount: 0.1, roughness: 0.2,
-  }, "Ett runt lock med lätt glans."),
-  createAIObject("p1", "Blå flaska", "plastic", "training", {
-    type: "bottle",
-    variant: "tall",
-    accent: "blue",
-    detail: "cap-band",
-    background: "#d8f0ff",
-  }, {
-    shine: 0.55, transparency: 0.35, roundness: 0.65, blueAmount: 0.9, roughness: 0.15,
-  }, "En blå, halvgenomskinlig flaska."),
-  createAIObject("p2", "Genomskinlig mugg", "plastic", "training", {
-    type: "cup",
-    variant: "handle-right",
-    accent: "clear",
-    detail: "fill-line",
-    background: "#e9fbff",
-  }, {
-    shine: 0.45, transparency: 0.9, roundness: 0.72, blueAmount: 0.15, roughness: 0.1,
-  }, "En nästan helt genomskinlig, rund mugg."),
-  createAIObject("p3", "Mjuk påse", "plastic", "training", {
-    type: "bag",
-    variant: "soft",
-    accent: "rose",
-    detail: "crease",
-    background: "#fff0f2",
-  }, {
-    shine: 0.25, transparency: 0.75, roundness: 0.35, blueAmount: 0.25, roughness: 0.3,
-  }, "En tunn, skrynklig och genomskinlig påse."),
-  createAIObject("p4", "Silverfärgad sked", "plastic", "training", {
-    type: "spoon",
-    variant: "slim",
-    accent: "silver",
-    detail: "blue-dot",
-    background: "#f0f1f4",
-  }, {
-    shine: 0.82, transparency: 0.05, roundness: 0.55, blueAmount: 0.08, roughness: 0.12,
-  }, "En blank, silverfärgad sked."),
-  createAIObject("p5", "Matt låda", "plastic", "training", {
-    type: "box",
-    variant: "plain",
-    accent: "mint",
-    detail: "corner-tape",
-    background: "#e8f4ef",
-  }, {
-    shine: 0.2, transparency: 0.12, roundness: 0.25, blueAmount: 0.45, roughness: 0.5,
-  }, "En matt, kantig låda."),
-  createAIObject("p6", "Färgglad leksaksbit", "plastic", "training", {
-    type: "block",
-    variant: "notched",
-    accent: "yellow",
-    detail: "dual-tone",
-    background: "#fff0c9",
-  }, {
-    shine: 0.35, transparency: 0.05, roundness: 0.6, blueAmount: 0.85, roughness: 0.35,
-  }, "En färgglad, rundad leksaksbit."),
-  createAIObject("t1", "Matt verkstadsburk", "metal", "testing", {
-    type: "can",
-    variant: "mid",
-    accent: "steel",
-    detail: "offset-ridges",
-    background: "#e4e7eb",
-  }, {
-    shine: 0.28, transparency: 0.04, roundness: 0.8, blueAmount: 0.1, roughness: 0.5,
-  }, "En matt, rund och sträv burk."),
-  createAIObject("t2", "Blank förpackning", "plastic", "testing", {
-    type: "container",
-    variant: "tray",
-    accent: "violet",
-    detail: "clear-window",
-    background: "#f8f0ff",
-  }, {
-    shine: 0.78, transparency: 0.35, roundness: 0.4, blueAmount: 0.35, roughness: 0.08,
-  }, "En blank förpackning med rundade hörn och ett genomskinligt fält."),
-  createAIObject("t3", "Målad kapsyl", "metal", "testing", {
-    type: "cap",
-    variant: "crimped",
-    accent: "blue",
-    detail: "center-dot",
-    background: "#dbe8ff",
-  }, {
-    shine: 0.58, transparency: 0.03, roundness: 0.85, blueAmount: 0.7, roughness: 0.22,
-  }, "En blåmålad, rund och räfflad kapsyl."),
-  createAIObject("t4", "Genomskinlig låda", "plastic", "testing", {
-    type: "crate",
-    variant: "open-top",
-    accent: "clear",
-    detail: "grid",
-    background: "#e5fbff",
-  }, {
-    shine: 0.42, transparency: 0.82, roundness: 0.25, blueAmount: 0.2, roughness: 0.18,
-  }, "En genomskinlig, kantig och slät låda."),
+  createAIObject("metal-can", "Konservburk", "metal", "training", { type: "can", background: "#eef1f6" }, { shine: 0.88, transparency: 0.02, roundness: 0.86, blueAmount: 0.1, roughness: 0.18 }, "En räfflad konservburk av metall."),
+  createAIObject("metal-screw", "Skruv", "metal", "training", { type: "screw", background: "#eceef3" }, { shine: 0.72, transparency: 0, roundness: 0.2, blueAmount: 0.08, roughness: 0.68 }, "En metallskruv med huvud och gängor."),
+  createAIObject("metal-spoon", "Metallsked", "metal", "training", { type: "spoon", background: "#f0f1f4" }, { shine: 0.82, transparency: 0.02, roundness: 0.7, blueAmount: 0.05, roughness: 0.15 }, "En blank sked av metall."),
+  createAIObject("metal-key", "Nyckel", "metal", "training", { type: "key", background: "#edf0f4" }, { shine: 0.68, transparency: 0, roundness: 0.45, blueAmount: 0.08, roughness: 0.4 }, "En metallnyckel med ring och tänder."),
+  createAIObject("metal-nut", "Mutter", "metal", "training", { type: "nut", background: "#eef0f3" }, { shine: 0.62, transparency: 0, roundness: 0.85, blueAmount: 0.05, roughness: 0.65 }, "En sexkantig mutter av metall."),
+  createAIObject("metal-whisk", "Metallvisp", "metal", "training", { type: "whisk", background: "#edf1f4" }, { shine: 0.76, transparency: 0, roundness: 0.55, blueAmount: 0.05, roughness: 0.35 }, "En köksvisp av böjda metalltrådar."),
+  createAIObject("metal-cup", "Metallmugg", "metal", "training", { type: "metal-cup", background: "#eaf0f3" }, { shine: 0.7, transparency: 0.03, roundness: 0.72, blueAmount: 0.12, roughness: 0.2 }, "En stadig mugg med blank metallyta."),
+  createAIObject("metal-wrench", "Skiftnyckel", "metal", "training", { type: "wrench", background: "#eceff3" }, { shine: 0.65, transparency: 0, roundness: 0.28, blueAmount: 0.06, roughness: 0.55 }, "En skiftnyckel av metall med ställbart gap."),
+  createAIObject("plastic-shampoo", "Schampoflaska", "plastic", "training", { type: "shampoo", background: "#e9f4ff" }, { shine: 0.38, transparency: 0.25, roundness: 0.68, blueAmount: 0.5, roughness: 0.18 }, "En mjuk plastflaska med snäpplock."),
+  createAIObject("plastic-lunchbox", "Matlåda i plast", "plastic", "training", { type: "lunchbox", background: "#e9f7ef" }, { shine: 0.28, transparency: 0.08, roundness: 0.25, blueAmount: 0.3, roughness: 0.3 }, "En formgjuten matlåda av plast med lock."),
+  createAIObject("plastic-block", "Byggkloss", "plastic", "training", { type: "block", background: "#fff1cb" }, { shine: 0.35, transparency: 0.02, roundness: 0.55, blueAmount: 0.75, roughness: 0.35 }, "En plastkloss med knoppar ovanpå."),
+  createAIObject("plastic-cup", "Plastmugg", "plastic", "training", { type: "plastic-cup", background: "#e8f8fb" }, { shine: 0.42, transparency: 0.5, roundness: 0.7, blueAmount: 0.25, roughness: 0.1 }, "En tunn, formgjuten mugg av plast."),
+  createAIObject("plastic-detergent", "Diskmedelsflaska", "plastic", "training", { type: "detergent", background: "#e7f8ee" }, { shine: 0.45, transparency: 0.3, roundness: 0.6, blueAmount: 0.65, roughness: 0.15 }, "En böjlig plastflaska med pipkork."),
+  createAIObject("plastic-funnel", "Plasttratt", "plastic", "training", { type: "funnel", background: "#f2ecff" }, { shine: 0.3, transparency: 0.2, roundness: 0.65, blueAmount: 0.45, roughness: 0.25 }, "En plasttratt med bred öppning och smalt rör."),
+  createAIObject("plastic-shovel", "Leksaksspade", "plastic", "training", { type: "shovel", background: "#fff0df" }, { shine: 0.32, transparency: 0.03, roundness: 0.4, blueAmount: 0.7, roughness: 0.4 }, "En liten formgjuten leksaksspade av plast."),
+  createAIObject("plastic-basket", "Plastkorg", "plastic", "training", { type: "basket", background: "#f3edff" }, { shine: 0.25, transparency: 0.15, roundness: 0.3, blueAmount: 0.55, roughness: 0.5 }, "En plastkorg med handtag och tydliga slitsar."),
+  createAIObject("test-nail", "Spik", "metal", "testing", { type: "nail", background: "#eef1f4" }, { shine: 0.7, transparency: 0, roundness: 0.15, blueAmount: 0.05, roughness: 0.6 }, "En metallspik med platt huvud och spets."),
+  createAIObject("test-metal-tray", "Aluminiumform", "metal", "testing", { type: "metal-tray", background: "#edf0f4" }, { shine: 0.62, transparency: 0.02, roundness: 0.55, blueAmount: 0.08, roughness: 0.25 }, "En räfflad form av blank aluminium."),
+  createAIObject("test-plastic-ruler", "Plastlinjal", "plastic", "testing", { type: "ruler", background: "#e8f5ff" }, { shine: 0.3, transparency: 0.12, roundness: 0.18, blueAmount: 0.6, roughness: 0.2 }, "En genomskinlig plastlinjal med måttstreck."),
+  createAIObject("test-spray-bottle", "Sprayflaska i plast", "plastic", "testing", { type: "spray", background: "#eaf8f2" }, { shine: 0.42, transparency: 0.3, roundness: 0.6, blueAmount: 0.55, roughness: 0.2 }, "En plastflaska med handtag och spraymunstycke."),
   createAIObject("s1", "Bucklig burk", "metal", "sorting", {
     type: "can",
     variant: "dented",
@@ -667,6 +544,8 @@ const elements = {
   retryLevelButton: document.querySelector("#retry-level-button"),
   completionLevelsButton: document.querySelector("#completion-levels-button"),
   confirmDialog: document.querySelector("#confirm-dialog"),
+  confirmTitle: document.querySelector("#confirm-title"),
+  confirmMessage: document.querySelector("#confirm-message"),
   cancelResetButton: document.querySelector("#cancel-reset-button"),
   confirmResetButton: document.querySelector("#confirm-reset-button"),
 };
@@ -839,6 +718,9 @@ function createSignatureState() {
 
 function createDefaultAILabState() {
   return {
+    datasetVersion: AI_DATASET_VERSION,
+    trainingDeckIds: createAITrainingDeck(),
+    trainingIndex: 0,
     labels: {},
     trained: false,
     installed: false,
@@ -848,7 +730,6 @@ function createDefaultAILabState() {
     completed: false,
     hasSeenIntro: false,
     stage: "training",
-    activeCandidateId: null,
     training: false,
     trainingStep: "",
     testIndex: 0,
@@ -861,10 +742,37 @@ function createDefaultAILabState() {
   };
 }
 
+function createAITrainingDeck() {
+  const shuffle = (items) => {
+    const result = [...items];
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const otherIndex = Math.floor(Math.random() * (index + 1));
+      [result[index], result[otherIndex]] = [result[otherIndex], result[index]];
+    }
+    return result;
+  };
+  const trainingObjects = getAIObjectsByGroup("training");
+  const metalIds = shuffle(trainingObjects.filter((item) => item.trueCategory === "metal")).slice(0, 5).map((item) => item.id);
+  const plasticIds = shuffle(trainingObjects.filter((item) => item.trueCategory === "plastic")).slice(0, 5).map((item) => item.id);
+  return shuffle([...metalIds, ...plasticIds]);
+}
+
+function isValidAITrainingDeck(ids) {
+  if (!Array.isArray(ids) || ids.length !== 10 || new Set(ids).size !== 10) return false;
+  const items = ids.map(getAIObject);
+  return items.every((item) => item?.group === "training")
+    && items.filter((item) => item.trueCategory === "metal").length === 5
+    && items.filter((item) => item.trueCategory === "plastic").length === 5;
+}
+
 function sanitizeAILab(value) {
   const clean = createDefaultAILabState();
   if (!value || typeof value !== "object") return clean;
-  const trainingIds = new Set(getAIObjectsByGroup("training").map((item) => item.id));
+  clean.hasSeenIntro = Boolean(value.hasSeenIntro);
+  clean.completed = Boolean(value.completed);
+  if (value.datasetVersion !== AI_DATASET_VERSION) return clean;
+  if (isValidAITrainingDeck(value.trainingDeckIds)) clean.trainingDeckIds = [...value.trainingDeckIds];
+  const trainingIds = new Set(clean.trainingDeckIds);
   if (value.labels && typeof value.labels === "object") {
     Object.entries(value.labels).forEach(([id, label]) => {
       if (trainingIds.has(id) && (label === "metal" || label === "plastic")) {
@@ -881,7 +789,7 @@ function sanitizeAILab(value) {
   clean.modelOutdated = Boolean(value.modelOutdated)
     || (Boolean(value.trained || value.installed) && !signatureMatches);
   clean.trained = Boolean(value.trained)
-    && Object.keys(clean.labels).length === 6
+    && Object.keys(clean.labels).length === clean.trainingDeckIds.length
     && signatureMatches
     && !clean.modelOutdated;
   const testObjects = getAIObjectsByGroup("testing");
@@ -918,10 +826,14 @@ function sanitizeAILab(value) {
   }
   clean.installed = Boolean(value.installed) && clean.trained && clean.testResults.length === 4 && (!savedInstalledSignature || savedInstalledSignature === currentSignature);
   if (clean.installed && !clean.installedSignature) clean.installedSignature = currentSignature;
-  clean.hasSeenIntro = Boolean(value.hasSeenIntro);
-  clean.completed = Boolean(value.completed) && clean.installed;
+  const hasSavedTrainingIndex = Number.isFinite(Number(value.trainingIndex));
+  clean.trainingIndex = clampNumber(value.trainingIndex, 0, clean.trainingDeckIds.length, 0);
+  if (!hasSavedTrainingIndex && Object.keys(clean.labels).length === clean.trainingDeckIds.length) {
+    clean.trainingIndex = clean.trainingDeckIds.length;
+  }
+  clean.completed = Boolean(value.completed);
   const savedTrainingStage = value.stage === "training";
-  clean.stage = clean.completed
+  clean.stage = clean.completed && clean.installed && value.stage === "complete"
     ? "complete"
     : clean.installed
       ? savedTrainingStage ? "training" : "sorting"
@@ -933,6 +845,9 @@ function sanitizeAILab(value) {
 
 function getPersistentAILabState() {
   return {
+    datasetVersion: state.aiLab.datasetVersion,
+    trainingDeckIds: state.aiLab.trainingDeckIds,
+    trainingIndex: state.aiLab.trainingIndex,
     labels: state.aiLab.labels,
     trained: state.aiLab.trained,
     installed: state.aiLab.installed,
@@ -2724,6 +2639,7 @@ function openAILab() {
     showStatus("Klara Robotarmen först.", "warning");
     return;
   }
+  saveProgress();
   showScreen("ai-lab");
 }
 
@@ -2735,7 +2651,7 @@ function renderAILab() {
     complete: "Träna · Prova · Använd klart",
   };
   elements.aiStageProgress.textContent = stageLabels[state.aiLab.stage] || stageLabels.training;
-  elements.aiCameraStatus.textContent = state.aiLab.completed
+  elements.aiCameraStatus.textContent = state.aiLab.completed && state.aiLab.installed
     ? "Kamera installerad · Uppdrag klart"
     : state.aiLab.installed
       ? "Kamera installerad"
@@ -2807,11 +2723,11 @@ function restoreAILabStatus() {
   } else if (state.aiLab.trained) {
     showAIStatus("Modellen är tränad. Ändra ett träningskort om du vill bygga en ny modell.", "info");
   } else if (selectedCount === 0) {
-    showAIStatus("Välj träningskort för att börja.", "info");
-  } else if (selectedCount < 6) {
-    showAIStatus(`${selectedCount} av 6 träningskort är märkta.`, "info");
+    showAIStatus("Märk det första föremålet som metall eller plast.", "info");
+  } else if (selectedCount < state.aiLab.trainingDeckIds.length) {
+    showAIStatus(`${selectedCount} av ${state.aiLab.trainingDeckIds.length} föremål är märkta.`, "info");
   } else {
-    showAIStatus("Sex träningskort är märkta. Träna AI-kameran när du är redo.", "info");
+    showAIStatus("Alla föremål är märkta. Kontrollera dina svar innan du tränar.", "info");
   }
 }
 
@@ -2831,51 +2747,77 @@ function renderAILabIntroduction() {
 }
 
 function renderAITrainingStage() {
-  const trainingObjects = getAIObjectsByGroup("training");
-  const selectedCount = Object.keys(state.aiLab.labels).length;
-  const metalItems = getSelectedAIObjects("metal");
-  const plasticItems = getSelectedAIObjects("plastic");
-  const balance =
-    metalItems.length === plasticItems.length
-      ? "Jämn träning"
-      : metalItems.length > plasticItems.length
-        ? "Fler metallexempel"
-        : "Fler plastexempel";
-
+  if (state.aiLab.trainingIndex >= state.aiLab.trainingDeckIds.length) return renderAITrainingReview();
+  const item = getAIObject(state.aiLab.trainingDeckIds[state.aiLab.trainingIndex]);
+  const assignedLabel = state.aiLab.labels[item.id];
   return `
-    <div class="ai-training-layout">
-      <section class="ai-panel" aria-labelledby="training-cards-title">
-        <div class="ai-panel-heading">
-          <div>
-            <p class="card-kicker">Träningslabbet</p>
-            <h2 id="training-cards-title">Välj och märk sex kort</h2>
-            <p>Du märker korten. Modellen använder märkningen du ger – även om märkningen blir fel. Facit är dolt medan du tränar.</p>
-          </div>
-          <span class="ai-count">${selectedCount} / 6 valda</span>
+    <section class="ai-panel ai-training-slide" aria-labelledby="ai-training-title">
+      ${renderAIModelOutdatedNotice()}
+      <div class="ai-training-slide-heading">
+        <div><p class="card-kicker">Träna AI-kameran</p><h2 id="ai-training-title" tabindex="-1">${item.name}</h2></div>
+        <span class="ai-count">Objekt ${state.aiLab.trainingIndex + 1} av ${state.aiLab.trainingDeckIds.length}</span>
+      </div>
+      <div class="ai-training-object">
+        ${renderAIObjectVisual(item, { size: "training", decorative: true })}
+        <p>Vad är föremålet gjort av?</p>
+        <div class="ai-training-labels" aria-label="Märk ${item.name}">
+          ${renderAITrainingLabelButton(item, "metal", assignedLabel)}
+          ${renderAITrainingLabelButton(item, "plastic", assignedLabel)}
         </div>
-        <div class="ai-object-grid">
-          ${trainingObjects.map(renderAITrainingCandidate).join("")}
-        </div>
-      </section>
-      <aside class="ai-summary" aria-label="Min träningssamling">
-        ${renderAIModelOutdatedNotice()}
-        <div class="ai-summary-heading">
-          <div><p class="card-kicker">Dina märkta kort</p><h2>Min träningssamling</h2></div>
-          <div class="ai-balance">${balance}</div>
-        </div>
-        <div class="dataset-overview" aria-label="Översikt över träningssamlingen">
-          <span><strong>${selectedCount}</strong> valda</span>
-          <span><strong>${metalItems.length}</strong> metall</span>
-          <span><strong>${plasticItems.length}</strong> plast</span>
-          <span><strong>${hasLowAIVariety("metal") || hasLowAIVariety("plastic") ? "Liten" : "Bra"}</strong> variation</span>
-        </div>
-        ${renderAISummaryGroup("Mina metallexempel", "metal", metalItems)}
-        ${renderAISummaryGroup("Mina plastexempel", "plastic", plasticItems)}
-        <p class="ai-helper-text">En jämn och varierad träningssamling kan hjälpa modellen, men testet visar hur den faktiskt fungerar.</p>
+        ${assignedLabel ? `<p class="ai-current-label" role="status">Ditt val: <strong>${formatAICategoryTitle(assignedLabel)}</strong></p>` : '<p class="ai-current-label">Välj metall eller plast.</p>'}
+      </div>
+      <div class="ai-training-navigation">
+        <button class="secondary-button" type="button" data-ai-action="previous-object" ${state.aiLab.trainingIndex === 0 ? "disabled" : ""}>← Föregående</button>
+        <button class="text-button" type="button" data-ai-action="new-deck">Nya träningsobjekt</button>
+      </div>
+    </section>`;
+}
+
+function renderAITrainingLabelButton(item, label, assignedLabel) {
+  const selected = assignedLabel === label;
+  return `<button class="ai-training-label-button" type="button" data-ai-label-id="${item.id}" data-label="${label}" aria-pressed="${selected}">${selected ? '<span aria-hidden="true">✓</span>' : ""}${formatAICategoryTitle(label)}</button>`;
+}
+
+function renderAITrainingReview() {
+  const items = state.aiLab.trainingDeckIds.map(getAIObject);
+  const counts = getAssignedLabelCounts();
+  const validation = getAITrainingValidationMessage();
+  return `
+    <section class="ai-panel ai-training-review" aria-labelledby="ai-training-review-title">
+      ${renderAIModelOutdatedNotice()}
+      <div class="ai-panel-heading">
+        <div><p class="card-kicker">Träna AI-kameran</p><h2 id="ai-training-review-title" tabindex="-1">Kontrollera dina märkningar</h2><p>AI-kameran kommer att lära sig av svaren du har valt.</p></div>
+        <span class="ai-count">10 av 10 märkta</span>
+      </div>
+      <div class="ai-review-counts" aria-label="Sammanfattning"><span>${counts.metal} märkta som metall</span><span>${counts.plastic} märkta som plast</span></div>
+      <div class="ai-review-grid">
+        ${items.map((item, index) => renderAIReviewItem(item, index)).join("")}
+      </div>
+      ${validation ? `<p class="ai-training-validation" role="alert">${validation}</p>` : '<p class="ai-training-validation is-valid">Båda materialen har tillräckligt många exempel.</p>'}
+      <div class="ai-review-actions">
         <button class="primary-button ai-train-action" type="button" data-ai-action="train">Träna AI-kameran</button>
-      </aside>
-    </div>
-  `;
+        <button class="secondary-button" type="button" data-ai-action="new-deck">Nya träningsobjekt</button>
+      </div>
+    </section>`;
+}
+
+function renderAIReviewItem(item, index) {
+  const label = state.aiLab.labels[item.id];
+  return `<article class="ai-review-item">
+    ${renderAIObjectVisual(item, { size: "summary", decorative: true })}
+    <span><strong>${item.name}</strong><small>Märkt som ${formatAICategory(label)}</small></span>
+    <button class="ai-item-action" type="button" data-ai-edit-index="${index}" aria-label="Ändra märkningen för ${item.name}">Ändra</button>
+  </article>`;
+}
+
+function getAITrainingValidationMessage() {
+  const labels = state.aiLab.trainingDeckIds.map((id) => state.aiLab.labels[id]).filter(Boolean);
+  if (labels.length !== state.aiLab.trainingDeckIds.length) return "Märk alla tio föremål först.";
+  const metalCount = labels.filter((label) => label === "metal").length;
+  const plasticCount = labels.filter((label) => label === "plastic").length;
+  if (!metalCount || !plasticCount) return "Modellen behöver exempel märkta som både metall och plast.";
+  if (metalCount < 2 || plasticCount < 2) return "Märk minst två föremål i varje kategori.";
+  return "";
 }
 
 function renderAIModelOutdatedNotice() {
@@ -2888,64 +2830,12 @@ function renderAIModelOutdatedNotice() {
   `;
 }
 
-function renderAITrainingCandidate(item) {
-  const assignedLabel = state.aiLab.labels[item.id];
-  const active = state.aiLab.activeCandidateId === item.id;
-  const assignmentText = assignedLabel ? ` Märkt som ${formatAICategory(assignedLabel)}.` : " Inte märkt.";
-  return `
-    <article class="ai-object-card${assignedLabel ? " is-selected" : ""}${active ? " is-active" : ""}">
-      <button class="ai-card-main" type="button" data-ai-candidate="${item.id}" aria-expanded="${active || Boolean(assignedLabel)}" aria-label="${item.name}. ${item.description}${assignmentText} Välj kortet för att visa märkning.">
-        ${renderAIObjectVisual(item, { decorative: true })}
-        <strong>${item.name}</strong>
-        <small>${item.description}</small>
-        ${active ? renderAIFeatures(item) : ""}
-        ${assignedLabel ? `<span class="ai-assigned-label">Märkt som ${formatAICategory(assignedLabel)}</span>` : ""}
-      </button>
-      ${
-        active || assignedLabel
-          ? `<div class="ai-label-actions" aria-label="Märk ${item.name}">
-              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="metal" aria-label="Märk ${item.name} som Metall" aria-pressed="${assignedLabel === "metal"}">${assignedLabel === "metal" ? '<span aria-hidden="true">✓ </span>' : ""}Metall</button>
-              <button class="ai-label-button" type="button" data-ai-label-id="${item.id}" data-label="plastic" aria-label="Märk ${item.name} som Plast" aria-pressed="${assignedLabel === "plastic"}">${assignedLabel === "plastic" ? '<span aria-hidden="true">✓ </span>' : ""}Plast</button>
-            </div>`
-          : ""
-      }
-    </article>
-  `;
-}
-
-function renderAISummaryGroup(title, label, items) {
-  return `
-    <section class="ai-summary-group">
-      <h3>${title}</h3>
-      ${
-        items.length
-          ? `<div class="ai-summary-list">${items.map((item) => renderAISummaryItem(item, label)).join("")}</div>`
-          : '<p class="ai-summary-empty">Inga kort ännu.</p>'
-      }
-    </section>
-  `;
-}
-
-function renderAISummaryItem(item, label) {
-  const otherLabel = label === "metal" ? "plastic" : "metal";
-  return `
-    <div class="ai-summary-item">
-      ${renderAIObjectVisual(item, { size: "summary", decorative: true })}
-      <span><strong>${item.name}</strong><small>Märkt som ${formatAICategory(label)}</small></span>
-      <span class="ai-summary-actions">
-        <button class="ai-item-action" type="button" data-ai-label-id="${item.id}" data-label="${otherLabel}" aria-label="Märk ${item.name} som ${formatAICategoryTitle(otherLabel)}">Byt till ${formatAICategory(otherLabel)}</button>
-        <button class="ai-item-action" type="button" data-ai-remove="${item.id}" aria-label="Ta bort ${item.name} från träningssamlingen">Ta bort</button>
-      </span>
-    </div>
-  `;
-}
-
 function renderAITrainingProgress() {
   return `
     <section class="ai-panel ai-training-progress" aria-live="polite">
       <div class="ai-scanner" aria-hidden="true"></div>
       <h2>${state.aiLab.trainingStep || "Läser träningskort…"}</h2>
-      <p class="ai-helper-text">Modellen byggs av de synliga egenskaperna i dina sex märkta exempel.</p>
+      <p class="ai-helper-text">Modellen byggs av de synliga egenskaperna i dina tio märkta exempel.</p>
     </section>
   `;
 }
@@ -3122,6 +3012,29 @@ function renderAICompleteStage() {
   `;
 }
 
+const AI_OBJECT_ARTWORK = {
+  "metal-can": `<svg viewBox="0 0 180 130"><ellipse cx="90" cy="27" rx="34" ry="10"/><path d="M56 27v72c0 7 15 12 34 12s34-5 34-12V27"/><ellipse class="light" cx="90" cy="27" rx="34" ry="10"/><path class="detail" d="M61 43h58M61 55h58M61 83h58M61 95h58"/><path class="highlight" d="M70 34v61"/></svg>`,
+  "metal-screw": `<svg viewBox="0 0 180 130"><g transform="rotate(-34 90 65)"><path d="M82 34h16l-2 66-6 13-6-13z"/><rect x="72" y="22" width="36" height="20" rx="5"/><path class="detail" d="M78 32h24M82 52l15 8M82 64l15 8M82 76l15 8M82 88l14 8"/></g></svg>`,
+  "metal-spoon": `<svg viewBox="0 0 180 130"><ellipse cx="90" cy="34" rx="23" ry="28"/><path d="M85 57h10l5 61H80z"/><ellipse class="light" cx="86" cy="29" rx="10" ry="14"/><path class="highlight" d="M88 66v42"/></svg>`,
+  "metal-key": `<svg viewBox="0 0 180 130"><circle cx="54" cy="58" r="26"/><circle class="cutout" cx="54" cy="58" r="12"/><path d="M76 51h70v16h-18v14h-15V67H98v11H84V67h-8z"/><path class="highlight" d="M83 55h55"/></svg>`,
+  "metal-nut": `<svg viewBox="0 0 180 130"><path d="M55 30h70l25 35-25 35H55L30 65z"/><circle class="cutout" cx="90" cy="65" r="22"/><path class="detail" d="M55 39h65l19 26-18 26"/><path class="highlight" d="M54 35l-17 30"/></svg>`,
+  "metal-whisk": `<svg viewBox="0 0 180 130"><rect x="82" y="75" width="16" height="47" rx="6"/><path class="wire" d="M90 80C24 48 48 10 90 70M90 80C156 48 132 10 90 70M90 78C59 38 73 9 90 69M90 78C121 38 107 9 90 69"/><path class="highlight" d="M87 84v30"/></svg>`,
+  "metal-cup": `<svg viewBox="0 0 180 130"><path d="M47 27h72l-7 82H55z"/><ellipse class="light" cx="83" cy="27" rx="36" ry="9"/><path class="handle" d="M116 43c39-4 42 53-3 51"/><path class="highlight" d="M63 39l-4 55"/><path class="detail" d="M55 99h57"/></svg>`,
+  "metal-wrench": `<svg viewBox="0 0 180 130"><path d="M49 15l19 19-9 18-18 9-19-19 6 29 21 10 20-9 57 46 18-18-55-48 6-22-10-21-29-6z"/><circle class="cutout" cx="133" cy="105" r="7"/><path class="highlight" d="M72 66l53 44"/></svg>`,
+  "plastic-shampoo": `<svg viewBox="0 0 180 130"><path d="M65 31h50l10 16-5 68H60l-5-68z"/><rect class="cap" x="72" y="15" width="36" height="18" rx="4"/><path class="seam" d="M61 49c16 7 42 7 58 0M66 98h48"/><path class="highlight" d="M72 44c-7 17-7 39-4 52"/></svg>`,
+  "plastic-lunchbox": `<svg viewBox="0 0 180 130"><rect x="31" y="39" width="118" height="67" rx="16"/><rect class="light" x="26" y="28" width="128" height="28" rx="12"/><path class="seam" d="M35 59h110"/><rect class="detail-fill" x="80" y="51" width="20" height="15" rx="4"/></svg>`,
+  "plastic-block": `<svg viewBox="0 0 180 130"><rect x="34" y="42" width="112" height="68" rx="9"/><g class="studs"><ellipse cx="57" cy="42" rx="13" ry="7"/><ellipse cx="90" cy="42" rx="13" ry="7"/><ellipse cx="123" cy="42" rx="13" ry="7"/></g><path class="seam" d="M42 55h96M45 99h90"/><path class="highlight" d="M45 59v30"/></svg>`,
+  "plastic-cup": `<svg viewBox="0 0 180 130"><path d="M48 27h84l-12 86H60z"/><ellipse class="light" cx="90" cy="27" rx="42" ry="9"/><path class="seam" d="M58 83h64"/><path class="highlight" d="M67 39l-5 52"/></svg>`,
+  "plastic-detergent": `<svg viewBox="0 0 180 130"><path d="M65 34h49l13 18-5 65H55l-4-65z"/><path class="handle-cutout" d="M74 48h31v29H83V60h-9z"/><rect class="cap" x="87" y="16" width="30" height="18" rx="5"/><path class="seam" d="M59 91h59"/><path class="highlight" d="M65 86V53"/></svg>`,
+  "plastic-funnel": `<svg viewBox="0 0 180 130"><ellipse cx="90" cy="27" rx="56" ry="15"/><path d="M35 27l43 56v35h24V83l43-56c-13 10-97 10-110 0z"/><ellipse class="light" cx="90" cy="27" rx="44" ry="9"/><path class="seam" d="M72 75h36"/><path class="highlight" d="M55 40l28 38"/></svg>`,
+  "plastic-shovel": `<svg viewBox="0 0 180 130"><path d="M73 14h34v28H73z"/><rect class="cutout-stroke" x="82" y="21" width="16" height="12" rx="7"/><path d="M84 40h12v47H84zM59 83h62l-9 36H68z"/><path class="seam" d="M68 91h44"/><path class="highlight" d="M73 96h30"/></svg>`,
+  "plastic-basket": `<svg viewBox="0 0 180 130"><path class="handle" d="M55 53c0-43 70-43 70 0"/><path d="M33 48h114l-12 65H45z"/><path class="slots" d="M55 61v38M73 61v38M90 61v38M107 61v38M125 61v38"/><path class="seam" d="M39 72h102M43 95h94"/></svg>`,
+  "test-nail": `<svg viewBox="0 0 180 130"><g transform="rotate(35 90 65)"><path d="M84 30h12v77l-6 14-6-14z"/><rect x="69" y="19" width="42" height="15" rx="3"/><path class="highlight" d="M88 38v61"/></g></svg>`,
+  "test-metal-tray": `<svg viewBox="0 0 180 130"><path d="M26 37h128l-14 70H40z"/><path class="light" d="M39 48h102l-10 47H49z"/><path class="detail" d="M43 55l9 35M61 51l5 42M82 50v44M102 50l-4 44M122 51l-8 41M140 55l-9 35"/><path class="highlight" d="M36 42h106"/></svg>`,
+  "test-plastic-ruler": `<svg viewBox="0 0 180 130"><g transform="rotate(-18 90 65)"><rect x="18" y="48" width="144" height="34" rx="5"/><path class="ticks" d="M30 49v17M42 49v10M54 49v17M66 49v10M78 49v17M90 49v10M102 49v17M114 49v10M126 49v17M138 49v10M150 49v17"/><path class="highlight" d="M25 75h129"/></g></svg>`,
+  "test-spray-bottle": `<svg viewBox="0 0 180 130"><path d="M67 46h45l12 18-5 55H58l-4-55z"/><path d="M76 29h36v20H76zM103 20h42v14h-27l-8 10"/><path class="trigger" d="M104 35l20 25h-17L92 39"/><path class="seam" d="M61 72h57"/><path class="highlight" d="M67 79v28"/></svg>`,
+};
+
 function renderAIObjectVisual(item, options = {}) {
   const visual = normalizeAIVisual(item?.visual);
   const size = options.size || "card";
@@ -3129,88 +3042,100 @@ function renderAIObjectVisual(item, options = {}) {
   const accessibility = options.decorative
     ? ' aria-hidden="true"'
     : ` role="img" aria-label="${item.description}"`;
+  const artwork = AI_OBJECT_ARTWORK[item?.id]?.replace("<svg ", '<svg class="ai-object-svg" aria-hidden="true" focusable="false" ');
   return `
     <span
-      class="ai-object-visual ai-object-visual--${size} ai-type-${visual.type} ai-variant-${visual.variant} ai-accent-${visual.accent} ai-detail-${visual.detail}${className}"
+      class="ai-object-visual ai-object-visual--${size} ai-material-${item?.trueCategory || "unknown"} ai-type-${visual.type} ai-variant-${visual.variant} ai-accent-${visual.accent} ai-detail-${visual.detail}${className}"
       style="--object-bg:${visual.background}"
       ${accessibility}
     >
-      <span class="ai-object-body"></span>
-      <span class="ai-object-detail ai-object-detail-primary"></span>
-      <span class="ai-object-detail ai-object-detail-secondary"></span>
+      ${artwork || '<span class="ai-object-body"></span><span class="ai-object-detail ai-object-detail-primary"></span><span class="ai-object-detail ai-object-detail-secondary"></span>'}
     </span>
   `;
 }
 
 function getSelectedAIObjects(label) {
-  return getAIObjectsByGroup("training").filter((item) => state.aiLab.labels[item.id] === label);
-}
-
-function selectAICandidate(id) {
-  if (state.aiLab.training) return;
-  if (!state.aiLab.labels[id] && Object.keys(state.aiLab.labels).length >= 6) {
-    showAIStatus("Träningssamlingen är full. Ta bort ett kort för att välja ett annat.", "warning");
-    return;
-  }
-  state.aiLab.activeCandidateId = state.aiLab.activeCandidateId === id ? null : id;
-  renderAILab();
+  return state.aiLab.trainingDeckIds.map(getAIObject).filter((item) => state.aiLab.labels[item.id] === label);
 }
 
 function labelAITrainingObject(id, label) {
   if (state.aiLab.training || !["metal", "plastic"].includes(label)) return;
-  const isNew = !state.aiLab.labels[id];
-  if (isNew && Object.keys(state.aiLab.labels).length >= 6) {
-    showAIStatus("Träningssamlingen är full. Ta bort ett kort för att välja ett annat.", "warning");
-    return;
-  }
-  if (state.aiLab.labels[id] === label) {
-    state.aiLab.activeCandidateId = null;
-    renderAILab();
-    return;
-  }
+  if (!state.aiLab.trainingDeckIds.includes(id)) return;
   const hadTrainedModel = state.aiLab.trained || Boolean(state.aiLab.trainingSignature);
   const hadInstalledModel = state.aiLab.installed;
-  state.aiLab.labels[id] = label;
-  state.aiLab.activeCandidateId = null;
-  invalidateAIModel({ hadModel: hadTrainedModel });
+  const changed = state.aiLab.labels[id] !== label;
+  if (changed) {
+    state.aiLab.labels[id] = label;
+    invalidateAIModel({ hadModel: hadTrainedModel });
+  }
+  state.aiLab.trainingIndex = Math.min(state.aiLab.trainingDeckIds.length, state.aiLab.trainingIndex + 1);
   saveProgress();
   renderAILab();
   showAIStatus(
-    hadInstalledModel
+    changed && hadInstalledModel
       ? "Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den."
-      : hadTrainedModel
+      : changed && hadTrainedModel
         ? "Träningsdatan har ändrats. Träna modellen igen."
-        : `${getAIObject(id).name} märktes som ${formatAICategory(label)}.`,
+        : state.aiLab.trainingIndex >= state.aiLab.trainingDeckIds.length
+          ? "Alla tio föremål är märkta. Kontrollera dina svar."
+          : `${getAIObject(id).name} märktes som ${formatAICategory(label)}.`,
     "info",
   );
+  focusAIElement(state.aiLab.trainingIndex >= state.aiLab.trainingDeckIds.length ? "#ai-training-review-title" : "#ai-training-title");
 }
 
-function removeAITrainingObject(id) {
-  if (state.aiLab.training || !state.aiLab.labels[id]) return;
-  const hadTrainedModel = state.aiLab.trained || Boolean(state.aiLab.trainingSignature);
-  const hadInstalledModel = state.aiLab.installed;
-  delete state.aiLab.labels[id];
-  state.aiLab.activeCandidateId = null;
-  invalidateAIModel({ hadModel: hadTrainedModel });
+function showPreviousAITrainingObject() {
+  if (state.aiLab.training || state.aiLab.trainingIndex <= 0) return;
+  state.aiLab.trainingIndex -= 1;
   saveProgress();
   renderAILab();
-  showAIStatus(
-    hadInstalledModel
-      ? "Träningskorten har ändrats. Träna och installera modellen igen innan Sorteringslinjen kan använda den."
-      : hadTrainedModel
-        ? "Träningsdatan har ändrats. Träna modellen igen."
-        : "Kortet togs bort från träningssamlingen.",
-    "info",
-  );
+  focusAIElement("#ai-training-title");
 }
 
-function invalidateAIModel({ hadModel = state.aiLab.trained || state.aiLab.installed } = {}) {
+function editAITrainingObject(index) {
+  const cleanIndex = clampNumber(index, 0, state.aiLab.trainingDeckIds.length - 1, 0);
+  state.aiLab.trainingIndex = cleanIndex;
+  saveProgress();
+  renderAILab();
+  focusAIElement("#ai-training-title");
+}
+
+function requestNewAITrainingDeck() {
+  const hasMeaningfulWork = Object.keys(state.aiLab.labels).length > 0 || state.aiLab.trained || state.aiLab.installed;
+  if (!hasMeaningfulWork) {
+    startNewAITrainingDeck();
+    return;
+  }
+  openConfirmation({
+    title: "Nya träningsobjekt?",
+    message: "Dina märkningar och pågående test försvinner. Stjärnor och andra framsteg sparas.",
+    confirmLabel: "Ja, byt objekt",
+    action: startNewAITrainingDeck,
+  });
+}
+
+function startNewAITrainingDeck() {
+  const completed = state.aiLab.completed;
+  const hadModel = state.aiLab.trained || state.aiLab.installed || Boolean(state.aiLab.trainingSignature);
+  state.aiLab.trainingDeckIds = createAITrainingDeck();
+  state.aiLab.trainingIndex = 0;
+  state.aiLab.labels = {};
+  state.aiLab.trainingSignature = "";
+  invalidateAIModel({ hadModel, preserveCompleted: true });
+  state.aiLab.completed = completed;
+  saveProgress();
+  renderAILab();
+  showAIStatus("Du har fått tio nya träningsobjekt.", "info");
+  focusAIElement("#ai-training-title");
+}
+
+function invalidateAIModel({ hadModel = state.aiLab.trained || state.aiLab.installed, preserveCompleted = false } = {}) {
   state.aiLab.runId += 1;
   state.aiLab.trained = false;
   state.aiLab.installed = false;
   state.aiLab.installedSignature = "";
   state.aiLab.modelOutdated = Boolean(hadModel);
-  state.aiLab.completed = false;
+  if (!preserveCompleted) state.aiLab.completed = false;
   state.aiLab.stage = "training";
   state.aiLab.testResults = [];
   resetCurrentAITest();
@@ -3219,19 +3144,9 @@ function invalidateAIModel({ hadModel = state.aiLab.trained || state.aiLab.insta
 
 async function trainAIModel() {
   if (state.aiLab.training) return;
-  const labels = Object.values(state.aiLab.labels);
-  if (labels.length !== 6) {
-    showAIStatus("Välj sex träningskort först.", "warning");
-    return;
-  }
-  const metalCount = labels.filter((label) => label === "metal").length;
-  const plasticCount = labels.filter((label) => label === "plastic").length;
-  if (metalCount === 0 || plasticCount === 0) {
-    showAIStatus("Modellen behöver exempel märkta som både metall och plast.", "warning");
-    return;
-  }
-  if (metalCount < 2 || plasticCount < 2) {
-    showAIStatus("Lägg till minst två exempel i varje kategori.", "warning");
+  const validation = getAITrainingValidationMessage();
+  if (validation) {
+    showAIStatus(validation, "warning");
     return;
   }
 
@@ -3449,7 +3364,7 @@ function returnToAITraining() {
   state.aiLab.stage = "training";
   state.aiLab.training = false;
   state.aiLab.scanRunning = false;
-  state.aiLab.activeCandidateId = null;
+  state.aiLab.trainingIndex = state.aiLab.trainingDeckIds.length;
   saveProgress();
   renderAILab();
   showAIStatus("Ändra ett träningskort om du vill bygga och testa en ny modell.", "info");
@@ -3612,6 +3527,27 @@ function resetAllProgress() {
   elements.progressBadge.textContent = "Framstegen är nollställda";
 }
 
+let pendingConfirmationAction = null;
+
+function openConfirmation({ title, message, confirmLabel, action }) {
+  pendingConfirmationAction = action;
+  elements.confirmTitle.textContent = title;
+  elements.confirmMessage.textContent = message;
+  elements.confirmResetButton.textContent = confirmLabel;
+  if (!elements.confirmDialog.open) elements.confirmDialog.showModal();
+}
+
+function closeConfirmation() {
+  pendingConfirmationAction = null;
+  if (elements.confirmDialog.open) elements.confirmDialog.close();
+}
+
+function confirmPendingAction() {
+  const action = pendingConfirmationAction;
+  closeConfirmation();
+  action?.();
+}
+
 // ----- Events ---------------------------------------------------------------
 
 function bindEvents() {
@@ -3656,15 +3592,15 @@ function bindEvents() {
     if (action === "scan") scanCurrentAITest();
     if (action === "reveal") revealCurrentAIFacit();
     if (action === "next-test") advanceAITest();
+    if (action === "previous-object") showPreviousAITrainingObject();
+    if (action === "new-deck") requestNewAITrainingDeck();
     if (action === "mission") openLevel(LEVELS.findIndex((level) => level.signature));
     if (action === "levels") showScreen("level");
 
-    const candidate = event.target.closest("[data-ai-candidate]");
-    if (candidate) selectAICandidate(candidate.dataset.aiCandidate);
     const labelButton = event.target.closest("[data-ai-label-id]");
     if (labelButton) labelAITrainingObject(labelButton.dataset.aiLabelId, labelButton.dataset.label);
-    const removeButton = event.target.closest("[data-ai-remove]");
-    if (removeButton) removeAITrainingObject(removeButton.dataset.aiRemove);
+    const editButton = event.target.closest("[data-ai-edit-index]");
+    if (editButton) editAITrainingObject(editButton.dataset.aiEditIndex);
   });
 
   elements.commandPalette.addEventListener("click", (event) => {
@@ -3752,12 +3688,18 @@ function bindEvents() {
     showScreen("level");
   });
 
-  elements.resetProgressButton.addEventListener("click", () => elements.confirmDialog.showModal());
-  elements.cancelResetButton.addEventListener("click", () => elements.confirmDialog.close());
-  elements.confirmResetButton.addEventListener("click", resetAllProgress);
+  elements.resetProgressButton.addEventListener("click", () => openConfirmation({
+    title: "Nollställa allt?",
+    message: "Alla stjärnor och AI-labbets framsteg försvinner. Bara det första uppdraget är upplåst.",
+    confirmLabel: "Ja, nollställ",
+    action: resetAllProgress,
+  }));
+  elements.cancelResetButton.addEventListener("click", closeConfirmation);
+  elements.confirmResetButton.addEventListener("click", confirmPendingAction);
   elements.confirmDialog.addEventListener("click", (event) => {
-    if (event.target === elements.confirmDialog) elements.confirmDialog.close();
+    if (event.target === elements.confirmDialog) closeConfirmation();
   });
+  elements.confirmDialog.addEventListener("cancel", () => { pendingConfirmationAction = null; });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && state.executionState.running) {
